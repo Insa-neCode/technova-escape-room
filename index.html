@@ -1,0 +1,2300 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Nachtschicht bei TechNova: Escape Room zu linearen Gleichungssystemen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:wght@600;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#111B2E; --ink2:#18263F; --panel:#1E2E4A; --line:#34496E;
+  --chalk:#F4EFE6; --mute:#A3B2CD;
+  --orange:#FF7A1A; --mint:#5BE0B8; --rose:#FF6B88; --blue:#5AA9FF;
+  --body:"Atkinson Hyperlegible",system-ui,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --head:"Bricolage Grotesque","Atkinson Hyperlegible",system-ui,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--ink);color:var(--chalk);font-family:var(--body);font-size:18px;line-height:1.5;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  -webkit-tap-highlight-color:transparent}
+h1,h2,h3{font-family:var(--head);font-weight:800;margin:0;line-height:1.1}
+p{margin:0 0 .7em}
+[hidden]{display:none!important}
+
+/* Buttons */
+.btn{min-height:54px;padding:0 24px;border-radius:14px;border:2px solid var(--line);background:var(--panel);color:var(--chalk);
+  font:700 18px var(--body);cursor:pointer;touch-action:manipulation}
+.btn:active{transform:translateY(1px)}
+.btn.primary{background:var(--orange);border-color:var(--orange);color:#1B0F02}
+.btn.ghost{background:transparent}
+.btn.small{min-height:44px;padding:0 16px;font-size:16px;border-radius:12px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+:is(.btn,.opt,.chip,.hot,.door,input,button):focus-visible{outline:3px solid var(--blue);outline-offset:3px}
+
+/* Intro */
+#intro{max-width:1100px;margin:0 auto;padding:0 18px 40px}
+.hero{position:relative;border-radius:0 0 26px 26px;overflow:hidden;background:#0B1528;margin:0 -18px}
+.hero svg{display:block;width:100%;height:auto;max-height:46vh}
+.hero .flicker{position:absolute;inset:0;background:#000;opacity:0;pointer-events:none;animation:flick 2.6s steps(1) 1}
+@keyframes flick{0%{opacity:.92}8%{opacity:0}14%{opacity:.8}20%{opacity:0}28%{opacity:.6}32%{opacity:0}100%{opacity:0}}
+.titleblock{padding:26px 4px 6px;max-width:760px}
+.titleblock h1{font-size:clamp(36px,6vw,64px);letter-spacing:-.01em}
+.titleblock .sub{color:var(--mute);font-size:20px;margin-top:8px}
+.story{max-width:68ch;margin:20px 0}
+.argus{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;background:#07101D;border:2px solid var(--line);border-left:6px solid var(--orange);
+  border-radius:6px 16px 16px 6px;padding:14px 18px;color:#FFD2AA;font-size:17px;line-height:1.45}
+.modes{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin:22px 0 10px}
+.mode{background:var(--ink2);border:2px solid var(--line);border-radius:18px;padding:18px;text-align:left;color:inherit;font:inherit;cursor:pointer}
+.mode[aria-pressed="true"]{border-color:var(--orange);background:#241E2B}
+.mode h3{font-size:24px;margin-bottom:6px}
+.mode p{color:var(--mute);margin:0;font-size:17px}
+.teams{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:8px 0 12px}
+.teams label{display:block;font-size:15px;color:var(--mute)}
+.teams input{width:100%;min-height:50px;border-radius:12px;border:2px solid var(--line);background:#0C1627;color:var(--chalk);font:700 18px var(--body);padding:0 14px}
+.teams .t1 input{border-color:var(--orange)} .teams .t2 input{border-color:var(--blue)}
+.how{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:18px 0;color:var(--mute);font-size:17px}
+.how div{border-left:3px solid var(--line);padding:2px 0 2px 12px}
+.how b{color:var(--chalk)}
+.startrow{display:flex;gap:12px;flex-wrap:wrap;margin-top:14px}
+.legal{margin-top:28px;font-size:14px;color:var(--mute)}
+
+/* Game */
+#game{max-width:1200px;margin:0 auto;display:flex;flex-direction:column;min-height:100%}
+.hud{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:10px 16px;background:var(--ink2);border-bottom:2px solid var(--line)}
+.hud .where{flex:1 1 260px}
+.hud .where b{font:800 20px var(--head);display:block}
+.hud .where span{color:var(--mute);font-size:15px}
+.clock{font-variant-numeric:tabular-nums;color:var(--mute);font-weight:700}
+.scorebox{display:flex;gap:8px;align-items:center}
+.sc{padding:6px 14px;border-radius:12px;border:2px solid var(--line);font-weight:700;min-width:120px;text-align:center}
+.sc small{display:block;font-weight:400;color:var(--mute);font-size:13px;line-height:1.1}
+.sc.t0{border-color:var(--orange)} .sc.t1{border-color:var(--blue)}
+.sc.on{background:#2A2F45;box-shadow:0 0 0 3px rgba(255,255,255,.12)}
+.sc.t0.on{box-shadow:0 0 0 3px rgba(255,122,26,.5)} .sc.t1.on{box-shadow:0 0 0 3px rgba(90,169,255,.5)}
+.stage{background:#0B1528}
+.stage svg{display:block;width:100%;height:auto;max-height:64vh;animation:fadein .6s ease-out}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+.terminal{display:flex;gap:12px;align-items:flex-start;padding:12px 16px;background:#07101D;border-top:2px solid var(--line);border-bottom:2px solid var(--line);min-height:84px}
+.terminal .tag{font:700 14px ui-monospace,Menlo,Consolas,monospace;background:var(--orange);color:#1B0F02;border-radius:6px;padding:2px 8px;flex:none;margin-top:3px}
+.terminal #termtxt{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#FFD2AA;font-size:17px;line-height:1.45}
+.bar{display:flex;gap:10px;flex-wrap:wrap;padding:12px 16px}
+.bar .spacer{flex:1}
+
+/* Scene */
+.hot{cursor:pointer;outline:none}
+.hot .hit{pointer-events:all}
+.hot .prop{transition:filter .15s}
+.hot.todo .prop{filter:drop-shadow(0 0 7px rgba(255,122,26,.8))}
+.hot.done .prop{filter:drop-shadow(0 0 6px rgba(91,224,184,.55));opacity:.85}
+.hot:hover .prop,.hot:focus-visible .prop{filter:drop-shadow(0 0 12px rgba(255,200,140,1))}
+.hot:focus-visible .hit{stroke:#5AA9FF;stroke-width:3;rx:14}
+.hot.todo .badge{animation:bob 2.4s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-5px)}}
+.bo{fill:var(--orange)} .bm{fill:var(--mint)}
+.bt{font:800 20px var(--head);fill:#1B0F02}
+.lab{font:700 15px var(--body);fill:#E8E1D3}
+.brand{font:800 30px var(--head);letter-spacing:.14em;fill:#3C5683}
+.brand.neon{fill:var(--orange);filter:drop-shadow(0 0 8px rgba(255,122,26,.7))}
+.exit{font:800 16px var(--head);fill:#5BE0B8;letter-spacing:.1em}
+.doorstat{font:700 15px var(--body);fill:#E8E1D3}
+.lamp{animation:lampb 2s ease-in-out infinite}
+@keyframes lampb{50%{opacity:.45}}
+.door{cursor:pointer;outline:none}
+.door .panel{transition:transform 1.1s cubic-bezier(.6,0,.2,1)}
+.door.open .panel{transform:translateY(-310px)}
+.door.nope{animation:nope .35s}
+@keyframes nope{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.ptxt{font:800 26px var(--head);fill:#111B2E}
+.f1{fill:#2C426A}.f2{fill:#46679F}.f3{fill:#0C1424}.fo{fill:#FF7A1A}.fs{fill:#9ED8FF}.fw{fill:#E9E2D2}.fy{fill:#E8C25A}.fg{fill:#6C7C99}.fk{fill:#B98A52}
+.prop [class^="f"]{stroke:#0A1220;stroke-width:1.2}
+.led{animation:lampb 1.6s ease-in-out infinite}
+
+/* Dialogs */
+dialog{border:0;padding:0;background:transparent;color:inherit;max-width:100vw;max-height:100dvh;overflow:visible}
+dialog::backdrop{background:rgba(5,9,18,.78)}
+.card{background:var(--panel);border:2px solid var(--line);border-radius:22px;width:min(800px,94vw);max-height:92dvh;overflow:auto;padding:22px 24px 24px}
+.card h2{font-size:30px}
+.card .kicker{color:var(--mute);font-size:15px;margin-bottom:6px}
+.card header{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:10px}
+.card h2{overflow-wrap:anywhere}
+.turn{display:inline-block;border-radius:10px;padding:4px 12px;font-weight:700;margin:6px 0 10px;border:2px solid var(--line)}
+.turn.t0{border-color:var(--orange);color:#FFC48F}.turn.t1{border-color:var(--blue);color:#B7D8FF}
+.pstory{color:var(--mute);margin-bottom:.6em}
+.pq{font-size:21px;font-weight:700;line-height:1.4;margin-bottom:.8em}
+.part{margin:14px 0;padding:14px;border-radius:14px;background:#17243C;border:1px solid var(--line)}
+.part .pq{font-size:19px;margin-bottom:.6em}
+.fields{display:flex;flex-wrap:wrap;gap:12px}
+.frow{display:flex;align-items:center;gap:10px;border:2px solid var(--line);border-radius:12px;padding:4px 12px;background:#0C1627}
+.frow.good{border-color:var(--mint)} .frow.bad{border-color:var(--rose)}
+.flab{font-weight:700}
+.frow input{width:110px;min-height:46px;border:0;background:transparent;color:var(--chalk);font:700 22px var(--body);outline:none}
+.frow:focus-within{border-color:var(--blue)}
+.fu{color:var(--mute)}
+.opts{display:grid;gap:10px}
+.opt{text-align:left;min-height:56px;border-radius:12px;border:2px solid var(--line);background:#0C1627;color:var(--chalk);font:700 19px var(--body);padding:10px 16px;cursor:pointer}
+.opt[aria-pressed="true"]{border-color:var(--orange);background:#2A2030}
+.opt.bad{border-color:var(--rose)}
+.chips{display:flex;flex-wrap:wrap;gap:10px}
+.chip{min-height:50px;border-radius:12px;border:2px solid var(--line);background:#0C1627;color:var(--chalk);font:700 18px var(--body);padding:8px 14px;cursor:pointer;text-align:left}
+.seq{margin:12px 0 0;padding:0 0 0 28px;display:grid;gap:8px;min-height:56px}
+.seq:empty{border:2px dashed var(--line);border-radius:12px;padding:14px;list-style:none;color:var(--mute)}
+.seq:empty::before{content:"Tippe die Schritte in der richtigen Reihenfolge an."}
+.seq li::marker{font-weight:800;color:var(--orange)}
+.seq li.bad .chip{border-color:var(--rose)}
+.gwrap{max-width:560px}
+.gsvg{display:block;width:100%;height:auto;touch-action:manipulation;border-radius:12px;background:#0F1A2E}
+.gl{stroke:#2B4068;stroke-width:1}.gl.ax{stroke:#9AA9C4;stroke-width:2.5}
+.gt{fill:#A3B2CD;font:14px var(--body)}
+.legend{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 8px}
+.lg{border-radius:999px;padding:3px 12px;border:2px solid var(--c);font-weight:700;font-size:16px}
+.pick{margin:8px 0 0;font-weight:700}
+.sl{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;margin:8px 0}
+.sl input[type=range]{width:100%;height:40px;accent-color:var(--orange)}
+.sl output{font-weight:800;min-width:48px;text-align:right;font-size:20px}
+.eq{font-weight:800;font-size:22px;margin:6px 0}
+.hints p{margin:8px 0 0;padding:8px 12px;border-left:4px solid var(--orange);background:#2A2030;border-radius:0 10px 10px 0}
+.fb{min-height:28px;font-weight:700;margin:10px 0 0}
+.fb.bad{color:#FFA3B5}.fb.good{color:var(--mint)}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.stars{font-size:34px;letter-spacing:6px;color:var(--orange)}
+.clue{border:2px dashed var(--orange);border-radius:14px;padding:12px 16px;margin:14px 0;background:#241E2B}
+.clue b{color:#FFC48F}
+.files ol{padding-left:22px}.files li{margin:8px 0}
+.fb.sign{color:#FFD2AA;font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;background:#07101D;border-left:6px solid var(--orange);border-radius:6px;padding:8px 12px}
+.opt.spot{display:flex;gap:12px;align-items:baseline;min-height:48px;font:700 17px ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+.opt.spot .ln{color:var(--mute);min-width:1.4em;text-align:right;flex:none}
+.argus{white-space:pre-line}
+/* Codekarten und Zahlenschloss */
+.ccards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px;margin:12px 0}
+.ccard{display:grid;grid-template-columns:auto 1fr;column-gap:10px;align-items:center;padding:8px 12px;border-radius:12px;border:2px solid var(--line);background:#0C1627}
+.ccard b{font-size:19px}
+.ccard small{grid-column:2;color:var(--mute);font-size:14px}
+.ccard .cl{grid-row:span 2;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font:800 18px var(--head);background:var(--c,#34496E);color:#111B2E}
+.ccard.off{opacity:.6;border-style:dashed}
+.ccard.off .cl{background:transparent;border:2px dashed var(--line);color:var(--mute)}
+.tipline{color:var(--mute);font-size:16px}
+.lock{display:flex;align-items:center;justify-content:center;gap:10px;margin:18px 0 6px}
+.lock .br{font:800 64px var(--head);color:var(--mute);line-height:1}
+.dial{display:flex;flex-direction:column;align-items:center;gap:6px}
+.dial .lab{font:700 16px var(--body);color:var(--mute)}
+.dial button{width:88px;min-height:44px;border-radius:12px;border:2px solid var(--line);background:#0C1627;color:var(--chalk);font:700 18px var(--body);cursor:pointer;touch-action:manipulation}
+.win{position:relative;width:88px;height:132px;overflow:hidden;border-radius:14px;border:3px solid #46679F;background:linear-gradient(#050A14,#1B2B48 50%,#050A14);touch-action:none;cursor:ns-resize;user-select:none;outline:none}
+.win::after{content:"";position:absolute;left:0;right:0;top:44px;height:44px;border-top:2px solid var(--orange);border-bottom:2px solid var(--orange);background:rgba(255,122,26,.08);pointer-events:none}
+.strip{position:absolute;left:0;right:0;top:0}
+.strip span{display:block;height:44px;line-height:44px;text-align:center;font:800 26px var(--head);color:#5C7096}
+.strip span.cur{color:var(--chalk);font-size:34px}
+.strip.up{animation:rollUp .16s ease-out}.strip.down{animation:rollDown .16s ease-out}
+@keyframes rollUp{from{transform:translateY(44px)}to{transform:none}}
+@keyframes rollDown{from{transform:translateY(-44px)}to{transform:none}}
+.lock.shake{animation:nope .35s}
+.lock.open .win{border-color:var(--mint)}
+.lock.open .strip span.cur{color:var(--mint)}
+.win:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
+/* Figuren */
+.people{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin:14px 0}
+.pcard{display:flex;gap:12px;align-items:flex-start;background:var(--ink2);border:2px solid var(--line);border-radius:16px;padding:10px 12px}
+.pcard.mini{align-items:center}
+.pcard b{display:block;font-size:18px}
+.pcard small{display:block;color:var(--mute);font-size:14px}
+.pcard p{margin:6px 0 0;font-size:16px}
+.pcard .pq2{color:#FFD2AA;font-style:italic}
+.pcard ul{margin:6px 0;padding-left:18px;font-size:15px}
+.pcard ul li{margin:4px 0}
+.ptw{flex:none;display:block;width:64px;height:64px;border-radius:50%;overflow:hidden;background:#2A3B5A;border:2px solid var(--line)}
+.pcard:not(.mini) .ptw{width:84px;height:84px}
+.ptw svg{display:block;width:100%;height:100%}
+.ptw.sm{width:36px;height:36px;border-width:1px}
+@media (max-width:480px){.pcard:not(.mini){flex-direction:column}}
+.whorow{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 8px}
+.whorow:empty{display:none}
+.who{display:inline-flex;align-items:center;gap:8px;border:2px solid var(--line);border-radius:999px;padding:2px 12px 2px 2px;font-weight:700;font-size:15px}
+.fh{font-size:22px;margin:18px 0 8px}
+/* Inventar */
+.inv{display:flex;gap:8px;flex-wrap:wrap}
+.item{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 12px 0 6px;border-radius:12px;border:2px solid var(--line);background:#0C1627;color:var(--chalk);font:700 15px var(--body);cursor:pointer}
+.item.on{border-color:#E8C25A;box-shadow:0 0 14px rgba(232,194,90,.55)}
+.ico{display:inline-block;width:30px;height:30px;flex:none;vertical-align:middle}.ico svg{width:100%;height:100%;display:block}
+.btn .ico{width:24px;height:24px;margin-right:6px}
+.clue .ico{margin-right:8px}
+.invlist{list-style:none;padding:0}.invlist li{display:flex;gap:10px;align-items:center;margin:8px 0}
+/* Geheimtinte und gesperrte Geräte */
+.locked{min-height:150px;border-radius:14px;display:grid;place-items:center;padding:20px;text-align:center;transition:background .7s,color .7s,box-shadow .7s,border-color .7s}
+.locked p{margin:0;font-weight:700;white-space:pre-line}
+.locked.uv{background:#E9E2D2 repeating-linear-gradient(0deg,transparent 0 26px,#D6CDBB 26px 27px);color:#C2B9A6}
+.locked.uv.reveal{background:#241338;color:#E2C8FF;box-shadow:inset 0 0 40px rgba(180,140,255,.65)}
+.pq.ink{color:#E2C8FF;text-shadow:0 0 12px rgba(180,140,255,.7)}
+.locked.card{background:#07101D;color:#FF6B88;border:2px solid var(--rose);font-family:ui-monospace,Consolas,monospace}
+.locked.card.reveal{color:var(--mint);border-color:var(--mint)}
+/* Balkenwaage */
+.scale .sitem{cursor:pointer}
+.scale .sitem:hover rect,.scale .sitem:hover circle{filter:brightness(1.25)}
+.scale .sitem:focus-visible{outline:3px solid var(--blue)}
+.sx{font:800 18px var(--head);fill:#1B0F02;pointer-events:none}
+.sw{font:800 13px var(--body);fill:#0B1A14;pointer-events:none}
+.scalebar{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+/* Lehrkraft-Modus */
+.tsec{margin:18px 0 0}.tsec>h3{font-size:20px;margin:0 0 8px}
+.tgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:8px}
+.tchoice{display:flex;gap:10px;align-items:flex-start;padding:8px 12px;border:2px solid var(--line);border-radius:12px;background:#0C1627;cursor:pointer}
+.tchoice:has(input:checked){border-color:var(--orange)}
+.tchoice input{width:22px;height:22px;margin-top:3px;accent-color:var(--orange);flex:none}
+.tchoice small{display:block;color:var(--mute);font-size:15px;line-height:1.35}
+.tsel,.tin,.tlink{min-height:46px;border-radius:12px;border:2px solid var(--line);background:#0C1627;color:var(--chalk);font:700 18px var(--body);padding:0 12px}
+.tin{width:180px}
+.tlink{width:100%;font:14px ui-monospace,Consolas,monospace}
+.opt.out,.opt.out:disabled{opacity:.5;text-decoration:line-through;border-color:var(--rose);cursor:not-allowed}
+.opts.two{grid-template-columns:1fr 1fr}
+.probe2{margin-top:12px}
+.probe2 .pq{font-size:19px}
+.pvgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
+.pvgrid .btn{text-align:left}
+.btn.pv{border-color:#B48CFF;color:#E2C8FF}
+.cfgnote{margin:14px 0 0;color:#FFD2AA;border-left:4px solid var(--orange);padding:4px 12px}
+.cfgnote.bad{color:#FFA3B5;border-color:var(--rose)}
+#clock.low{color:var(--rose);animation:lampb 1s ease-in-out infinite}
+.titleblock h1,#room{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+@media (max-width:480px){.lock{gap:6px}.lock .br{font-size:44px}.win,.dial button{width:70px}}
+
+/* End */
+#end{max-width:900px;margin:0 auto;padding:30px 18px 50px}
+#end h1{font-size:clamp(34px,6vw,56px);margin-bottom:8px}
+.big{font:800 54px var(--head);color:var(--orange)}
+table.res{width:100%;border-collapse:collapse;margin:18px 0}
+.res th,.res td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+.res th{color:var(--mute);font-weight:400;font-size:15px}
+.tagok,.tagmid,.tagno,.tagoff{display:inline-block;border-radius:999px;padding:2px 12px;font-weight:700;font-size:15px}
+.tagoff{background:#22304A;color:var(--mute)}
+.tagok,.tagmid,.tagno,.tagoff{white-space:nowrap}
+/* Nachweis-Karte */
+.proof{max-width:640px;background:var(--panel);border:2px solid var(--orange);border-radius:20px;padding:18px 20px;margin:14px 0}
+.proofhead{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline;border-bottom:2px solid var(--line);padding-bottom:8px;margin-bottom:12px}
+.proofhead b{font:800 20px var(--head);letter-spacing:.12em;color:var(--orange)}
+.proofhead span{color:var(--mute);font-size:15px}
+.proof .pname{max-width:420px}.proof .pname input{width:100%}
+.pname-print{display:none;font:800 24px var(--head);margin:0 0 4px}
+.pmeta{color:var(--mute);font-size:15px;margin:8px 0}
+.pscore{display:flex;flex-wrap:wrap;gap:8px 24px;align-items:center;margin:8px 0}
+.pscore small{display:block;color:var(--mute);font-size:14px}
+.pscore b{font:800 40px var(--head);color:var(--orange)}
+.proof .res{margin:8px 0}.proof .res td{padding:6px 8px}
+.ptopic{color:var(--mute);font-size:14px}
+.pcodebox{margin-top:10px;padding:10px 14px;border:2px dashed var(--orange);border-radius:12px;background:#07101D}
+.pcodebox small{display:block;color:var(--mute);font-size:14px}
+.pcode{font:800 26px ui-monospace,"SF Mono",Menlo,Consolas,monospace;letter-spacing:.06em;color:#FFD2AA;overflow-wrap:anywhere}
+.pcode.empty{font-size:17px;color:var(--mute);letter-spacing:0}
+@media print{
+  @page{margin:12mm}
+  html,body{background:#fff!important}
+  body>*:not(#end),#end>*:not(.printme){display:none!important}
+  #end{padding:0!important;max-width:none!important}
+  .proof.printme{max-width:none;margin:0;background:#fff!important;color:#000!important;border:2px solid #000!important;break-inside:avoid}
+  .proof.printme .noprint{display:none!important}
+  .proof.printme .pname-print{display:block!important;color:#000!important}
+  .proof.printme .proofhead b,.proof.printme .pscore b,.proof.printme .pcode{color:#000!important}
+  .proof.printme .pmeta,.proof.printme small,.proof.printme .ptopic,.proof.printme .proofhead span{color:#333!important}
+  .proof.printme .pcodebox{background:#fff!important;border-color:#000!important}
+  .proof.printme [class^="tag"]{background:none!important;color:#000!important;border:1.5px solid #000}
+  .proof.printme .res td{border-color:#999!important}
+}
+.tagok{background:#16382F;color:var(--mint)} .tagmid{background:#3B3217;color:#F0CE6B} .tagno{background:#42212B;color:#FFA3B5}
+
+@media (max-width:700px){.teams{grid-template-columns:1fr}.sc{min-width:96px}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<!-- INTRO -->
+<section id="intro">
+  <div class="hero" id="hero"><svg id="herosvg" viewBox="0 0 1000 520" role="img" aria-label="Dunkler Elektronikmarkt bei rotem Notlicht"></svg><div class="flicker"></div></div>
+  <div class="titleblock">
+    <h1>Nachtschicht bei TechNova</h1>
+    <p class="sub">Ein Escape Room zu linearen Gleichungssystemen</p>
+  </div>
+  <div class="story">
+    <p>Samstag, 20:03 Uhr. TechNova hat zu. Du bist Praktikant:in und hilfst bei der Inventur. Außer dir sind nur drei Leute im Haus: Hausmeister Kurz, Filialleiterin Frau Tan und Azubi Piet.</p>
+    <div class="people" id="cast"></div>
+    <p>Dann geht das Licht aus. Rotes Notlicht. Ein Piepen aus allen Lautsprechern. ARGUS, das Sicherheitssystem, meldet sich.</p>
+    <div class="argus">FEHLER 404: VORZEICHEN<br>Alle Türen verriegelt.<br>Zum Öffnen: Code (x | y) eingeben.</div>
+    <p style="margin-top:14px">Rechne dich Raum für Raum nach draußen. Und finde heraus, was mit ARGUS los ist.</p>
+  </div>
+  <div class="modes" role="group" aria-label="Spielmodus">
+    <button class="mode" id="mSolo" aria-pressed="true" type="button"><h3>Einzeln</h3><p>Du allein gegen die Nacht. Punkte, Sterne und am Ende eine Auswertung, was schon sitzt.</p></button>
+    <button class="mode" id="mDuel" aria-pressed="false" type="button"><h3>Duell</h3><p>Zwei Teams an einem Tablet. Ihr wechselt euch ab. Wer danebenliegt, gibt das Rätsel ans andere Team weiter.</p></button>
+  </div>
+  <div class="teams" id="teams" hidden>
+    <div class="t1"><label for="n0">Team 1</label><input id="n0" value="Team Orange" maxlength="16"></div>
+    <div class="t2"><label for="n1">Team 2</label><input id="n1" value="Team Blau" maxlength="16"></div>
+  </div>
+  <div class="how">
+    <div><b>Rätsel öffnen.</b> Tippe auf einen leuchtenden Gegenstand im Raum.</div>
+    <div><b>Codekarten sammeln.</b> Jedes gelöste Rätsel gibt eine Karte mit einer Geraden. Alle laufen durch den Türcode (x | y). Mit allen Karten bis auf eine kannst du das Zahlenschloss bedienen.</div>
+    <div><b>Rechnen auf Papier.</b> Hol dir ein Heft. Tipps kosten Punkte, aber keine Nerven.</div>
+  </div>
+  <div class="startrow">
+    <button class="btn primary" id="start" type="button">Nachtschicht starten</button>
+    <button class="btn" id="resume" type="button" hidden>Weiterspielen</button>
+    <button class="btn ghost" id="lastproof" type="button" hidden>Letzter Nachweis</button>
+    <button class="btn ghost sndbtn" type="button" aria-pressed="true">Ton: an</button>
+  </div>
+  <p class="cfgnote" id="cfgnote" hidden></p>
+  <p class="legal" id="legal"></p>
+</section>
+
+<!-- GAME -->
+<section id="game" hidden>
+  <div class="hud">
+    <div class="where"><b id="room"></b><span id="topic"></span></div>
+    <div class="clock" id="clock" aria-label="Spielzeit">00:00</div>
+    <div class="scorebox" id="scorebox"></div>
+  </div>
+  <div class="stage"><svg id="scene" viewBox="0 0 1000 520" role="group" aria-label="Raum"></svg></div>
+  <div class="terminal"><span class="tag">ARGUS</span><div id="termtxt" aria-live="polite"></div></div>
+  <div class="bar">
+    <button class="btn small ghost" id="btnFiles" type="button">Fallakte</button>
+    <button class="btn small ghost sndbtn" type="button" aria-pressed="true">Ton: an</button>
+    <div class="inv" id="inv" aria-label="Inventar" hidden></div>
+    <button class="btn small pv" id="pvHelp" type="button" hidden>Lösungen</button>
+    <button class="btn small pv" id="pvNext" type="button" hidden>Raum überspringen</button>
+    <span class="spacer"></span>
+    <button class="btn small ghost" id="btnQuit" type="button">Zum Start</button>
+  </div>
+</section>
+
+<!-- END -->
+<section id="end" hidden></section>
+
+<dialog id="panel" aria-labelledby="ptitle"><div class="card">
+  <header><div><div class="kicker" id="pkick"></div><h2 id="ptitle"></h2></div><button class="btn small ghost" id="pclose" type="button" aria-label="Rätsel schließen">Schließen</button></header>
+  <div id="pturn"></div>
+  <div class="whorow" id="pwho"></div>
+  <p class="pstory" id="pstory"></p>
+  <p class="pq" id="pq"></p>
+  <div id="pbody"></div>
+  <div class="hints" id="phints"></div>
+  <div class="fb" id="pfb" aria-live="polite"></div>
+  <div class="actions" id="pactions"></div>
+</div></dialog>
+
+<dialog id="card" aria-labelledby="ctitle"><div class="card" id="cardbody"></div></dialog>
+<dialog id="lockdlg" aria-labelledby="ltitle"><div class="card" id="lockbody"></div></dialog>
+<dialog id="teacher" aria-labelledby="ttitle"><div class="card" id="tbody"></div></dialog>
+<dialog id="files"><div class="card files"><header><h2 id="ftitle">Fallakte</h2><button class="btn small ghost" id="fclose" type="button">Schließen</button></header><div id="fbody"></div></div></dialog>
+
+<script>
+(()=>{
+'use strict';
+const $=(s,r=document)=>r.querySelector(s);
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const KEY='technova-lgs-v3';
+const LICENSE='© 2026 Insa Riese. Dieses Werk ist lizenziert unter CC BY-NC 4.0 (Erstellt mit KI-Unterstützung). Freie Vervielfältigung erlaubt, kommerzielle Nutzung untersagt.';
+let uid=0;
+
+function h(tag,props={},...kids){
+  const e=document.createElement(tag);
+  for(const [k,v] of Object.entries(props)){
+    if(k==='class')e.className=v;
+    else if(k==='html')e.innerHTML=v;
+    else if(k.startsWith('on'))e.addEventListener(k.slice(2),v);
+    else if(v!==false&&v!=null)e.setAttribute(k,v===true?'':v);
+  }
+  for(const kid of kids.flat()){ if(kid==null||kid===false)continue; e.append(kid.nodeType?kid:document.createTextNode(kid)); }
+  return e;
+}
+function shuffle(a){const r=[...a];for(let i=r.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[r[i],r[j]]=[r[j],r[i]]}return r}
+function shuffleNot(a){if(a.length<2)return[...a];let r;do{r=shuffle(a)}while(r.every((x,i)=>x===a[i]));return r}
+function num(s){
+  s=String(s).trim().replace(/\s+/g,'').replace(/−/g,'-').replace(/,/g,'.');
+  if(/^-?\d+(\.\d+)?\/-?\d+(\.\d+)?$/.test(s)){const [a,b]=s.split('/').map(Number);return b?a/b:NaN}
+  if(/^-?\d+(\.\d+)?$/.test(s))return Number(s);
+  return NaN;
+}
+const mi=v=>String(v).replace('-','−');
+
+/* ================= ZUFALL UND FORMAT ================= */
+/* Jede Runde bekommt einen eigenen Seed. Daraus entstehen pro Rätsel feste Zufallszahlen,
+   auch nach dem Neuladen. Zwei Tablets haben fast nie dieselben Aufgaben. */
+function hash(s){let x=2166136261;for(const c of String(s)){x^=c.charCodeAt(0);x=Math.imul(x,16777619)}return x>>>0}
+function mkR(seed,id){
+  let a=hash(seed+':'+id);
+  const f=()=>{a=(a+0x6D2B79F5)|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
+  const R={f,int:(lo,hi)=>lo+Math.floor(f()*(hi-lo+1)),
+    nz:(lo,hi)=>{let v;do v=R.int(lo,hi);while(v===0);return v},
+    pick:arr=>arr[Math.floor(f()*arr.length)],
+    shuf:arr=>{const r=[...arr];for(let i=r.length-1;i>0;i--){const j=Math.floor(f()*(i+1));[r[i],r[j]]=[r[j],r[i]]}return r}};
+  return R;
+}
+/* Zahl mit echtem Minus und Komma */
+const fz=v=>(v<0?'−':'')+String(Math.abs(v)).replace('.',',');
+const par=v=>v<0?`(${fz(v)})`:fz(v);
+/* Term aus Paaren [Koeffizient, Variable]: lin([2,'x'],[-1,'y'],[5,'']) ergibt "2x − y + 5" */
+function lin(...ts){let o='';for(const [c,v] of ts){if(!c)continue;const a=Math.abs(c);o+=o?(c<0?' − ':' + '):(c<0?'−':'');o+=(v&&a===1?'':fz(a))+v}return o||'0'}
+const yf=(m,b)=>`y = ${lin([m,'x'],[b,''])}`;
+const std=(a,b,c)=>`${lin([a,'x'],[b,'y'])} = ${fz(c)}`;
+const sys=(e1,e2)=>`I: ${e1} und II: ${e2}`;
+const calc=(m,x,b)=>`${fz(m)} · ${par(x)} ${b<0?'−':'+'} ${fz(Math.abs(b))}`;
+
+/* Bausteine. Jedes System hat eine ganzzahlige Lösung (x | y). */
+function genSysY(R){for(;;){const x=R.nz(-3,5),y=R.nz(-3,9),m1=R.nz(-3,5),m2=R.nz(-3,5);if(m1===m2)continue;const b1=y-m1*x,b2=y-m2*x;if(!b1||!b2||b1===b2||Math.abs(b1)>15||Math.abs(b2)>15)continue;return{x,y,m1,b1,m2,b2}}}
+function genSub(R,o={}){for(;;){const x=R.nz(-2,5),m=R.nz(-3,4),y=o.b0?m*x:R.nz(-3,9),b=y-m*x;if(!o.b0&&(!b||Math.abs(b)>12))continue;const a=R.nz(-3,4),c=R.int(o.cmin||1,3);if(a+c*m===0)continue;const e=a*x+c*y;if(Math.abs(e)>45)continue;return{x,y,m,b,a,c,e}}}
+const insT=s=>lin([s.m,'x'],[s.b,'']);
+const subT=s=>`${lin([s.a,'x'])} + ${s.c===1?'':s.c}(${insT(s)}) = ${fz(s.e)}`;
+function genAddY(R){for(;;){const x=R.nz(-3,6),y=R.nz(-3,8),a1=R.int(1,5),a2=R.int(1,5),k=R.int(1,4);if(a1===a2)continue;const c1=a1*x+k*y,c2=a2*x-k*y;if(!c2||Math.abs(c1)>45||Math.abs(c2)>45)continue;return{x,y,a1,a2,k,c1,c2}}}
+function genAddX(R){for(;;){const x=R.nz(-3,6),y=R.nz(-3,8),a=R.int(1,5),b1=R.int(1,6),b2=R.int(1,6);const c1=a*x+b1*y,c2=-a*x+b2*y;if(!c1||!c2||Math.abs(c1)>50||Math.abs(c2)>70)continue;return{x,y,a,b1,b2,c1,c2}}}
+function genMul(R){for(;;){const x=R.nz(-2,5),y=R.nz(-2,6),a1=R.int(1,5),a2=R.int(1,4),k=R.int(2,5);if(a1-k*a2===0)continue;const c1=a1*x+k*y,c2=a2*x+y;if(Math.abs(c1)>50)continue;return{x,y,a1,a2,k,c1,c2}}}
+function genCross(R,m1s,m2s,avoid){for(;;){const x=R.int(0,4),y=R.int(0,6),m1=R.pick(m1s),m2=R.pick(m2s),b1=y-m1*x,b2=y-m2*x;if(b1<-6||b1>8||b2<-4||b2>12)continue;if(avoid&&avoid(m1,b1,m2,b2))continue;return{x,y,m1,b1,m2,b2}}}
+function genProbe(R,yform){
+  const x=R.nz(-2,4),y=R.nz(-3,6),on=R.f()<.5,bad=on?0:R.pick([1,2]),off=R.pick([-2,-1,1,2]);
+  let e1;
+  if(yform){const m=R.nz(-3,3);e1=yf(m,y-m*x+(bad===1?off:0))}
+  else{const a=R.nz(-3,3),b=R.nz(-3,3);e1=std(a,b,a*x+b*y+(bad===1?off:0))}
+  const a2=R.nz(-2,3),b2=R.nz(-2,2),e2=std(a2,b2,a2*x+b2*y+(bad===2?off:0));
+  /* Für die Probe im E-Kurs: ein Teil-Term von II, damit man wirklich einsetzen muss */
+  const tx=Math.abs(a2)>=Math.abs(b2),term=tx?{txt:lin([a2,'x']),val:a2*x}:{txt:lin([b2,'y']),val:b2*y};
+  return{x,y,on,bad,e1,e2,term};
+}
+/* Rechenweg mit genau einem Vorzeichenfehler.
+   Typ A: Fehler beim Klammer auflösen (Zeile 3). Typ B: Fehler beim Umstellen (Zeile 5). */
+function worked(R,typ){
+  for(;;){
+    const x=R.nz(-3,6),a=R.nz(-3,4),y=R.nz(-4,8),b=y-a*x,c=R.int(1,4),d=R.int(2,4),K=c+d*a;
+    if(!b||Math.abs(K)<2)continue;
+    const e=c*x+d*y,xw=(e+d*b)/K;
+    if(!Number.isInteger(xw)||xw===x||Math.abs(e)>40)continue;
+    const yw=a*xw+b,db=typ==='A'?-d*b:d*b;
+    if(Math.abs(xw)>9||Math.abs(yw)>25)continue;
+    const lines=[
+      `${sys(yf(a,b),std(c,d,e))}`,
+      `I in II einsetzen: ${lin([c,'x'])} + ${d}(${lin([a,'x'],[b,''])}) = ${fz(e)}`,
+      `Klammer auflösen: ${lin([c,'x'],[d*a,'x'],[db,''])} = ${fz(e)}`,
+      `Zusammenfassen: ${lin([K,'x'],[db,''])} = ${fz(e)}`,
+      `Umstellen: ${lin([K,'x'])} = ${fz(e+d*b)}`,
+      `x = ${fz(xw)}`,
+      `y = ${calc(a,xw,b)} = ${fz(yw)}`,
+      `Lösung: (${fz(xw)} | ${fz(yw)})`];
+    return{lines,err:typ==='A'?2:4,x,y,xw,yw};
+  }
+}
+
+/* ================= DATEN ================= */
+const I=(fields,extra={})=>({t:'input',fields,...extra});
+const C=(o,c,extra={})=>({t:'choice',o,c,...extra});
+const P=(id,name,prop,story,q,parts,hints)=>({id,name,prop,story,q,parts,hints});
+/* G = Rätsel mit Zufallszahlen. gen(R) liefert q, parts und hints. */
+const G=(id,name,prop,story,gen)=>({id,name,prop,story,gen});
+const XY=(x,y)=>[{l:'x =',a:x},{l:'y =',a:y}];
+const YN=(c,why)=>C(['Ja','Nein'],c,{fixed:true,why});
+const VWHY=[
+ [null,'Einsetzen geht auch. Aber beide Gleichungen sind schon nach y aufgelöst, da ist Gleichsetzen schneller.','Addieren klappt hier nur mit Umformen. Beide sind nach y aufgelöst: Gleichsetzen ist schneller.'],
+ ['Zum Gleichsetzen müsstest du erst II nach y umstellen. In I steht y schon allein, also ist Einsetzen schneller.',null,'Addieren bräuchte erst Umformen. In I steht y schon allein, also ist Einsetzen schneller.'],
+ ['Gleichsetzen bräuchte zwei Umformungen. Schau auf die Koeffizienten: Einer fällt beim Addieren direkt weg.','Einsetzen bräuchte erst Umformen. Schau auf die Koeffizienten: Einer fällt beim Addieren direkt weg.',null]];
+const VERF=(c,q='Welches Verfahren passt am besten?')=>C(['Gleichsetzen','Einsetzen','Addieren'],c,{fixed:true,q,why:VWHY[c]});
+const ORANGE='#FF7A1A', BLUE='#5AA9FF';
+const WHYCAM=['Keine Lösung gibt es nur bei gleicher Steigung und verschiedenem b. Vergleiche nochmal m und b.','Genau eine Lösung gibt es nur bei verschiedenen Steigungen. Sind die Steigungen wirklich verschieden?','Unendlich viele Lösungen gibt es nur, wenn beide Geraden identisch sind: gleiches m und gleiches b.'];
+const CAMS=[['Hausmeister Kurz','Frau Tan','Hausmeister Kurz und Frau Tan laufen durch die Gänge.'],['Frau Tan','Piet','Frau Tan und Piet laufen in einer anderen Aufnahme.'],['Kurz','Frau Tan','Noch eine Aufnahme: Kurz und Frau Tan sind wieder unterwegs.']];
+/* Die drei Kameras bekommen pro Runde eine andere Verteilung von keine / eine / unendlich viele Lösungen. */
+const camPuzzle=i=>G('7.'+(i+1),'Kamera '+(i+1),'monitor',CAMS[i][2],R=>{
+  const cat=mkR(S.seed,'cams').shuf([0,1,2])[i];
+  const m=R.nz(-3,3),b=R.nz(-4,6),k=cat===2?R.int(2,3):R.int(1,3);
+  let m2=m,b2=b;
+  if(cat===0)do b2=R.nz(-4,6);while(b2===b);
+  if(cat===1)do m2=R.nz(-3,3);while(m2===m);
+  const e2=k===1?yf(m2,b2):std(-k*m2,k,k*b2);
+  return{q:`${CAMS[i][0]} läuft nach ${yf(m,b)}. ${CAMS[i][1]} läuft nach ${e2}. Wie viele Lösungen hat dieses System?`,
+    parts:[C(['Keine Lösung','Genau eine Lösung','Unendlich viele Lösungen'],cat,{fixed:true,why:WHYCAM})],
+    hints:[k===1?'Vergleiche die Steigungen m und die y-Achsenabschnitte b.':'Forme die zweite Gleichung in die Form y = mx + b um. Vergleiche dann m und b.',
+      k===1?`Steigungen: ${fz(m)} und ${fz(m2)}. Achsenabschnitte: ${fz(b)} und ${fz(b2)}.`:`Die zweite Gleichung umgeformt: ${yf(m2,b2)}. Vergleiche jetzt m und b.`]};
+});
+
+const LEVELS=[
+{room:'Eingangshalle',topic:'Lineare Funktionen',scene:'hall',code:'graph',tint:'#FF7A1A',
+ intro:'TÜR 1 VERRIEGELT. Kassen, Scanner und Preisschilder spielen verrückt. Tippe auf die leuchtenden Gegenstände. Jedes gelöste Rätsel gibt dir eine Codekarte mit einer Geraden. Alle Geraden laufen durch einen Punkt: den Türcode (x | y). Ab vier Karten kannst du das Zahlenschloss an der Tür bedienen.',
+ outro:'Die Tür gleitet auf. Im Gang riecht es nach heißem Metall.',
+ clue:'Beweis 1: Seit 19:58 zeigen alle Preisschilder Unsinn. Um 19:58 lief ein Update.',
+ puzzles:[
+  G('1.1','Kasse 3','kasse','Das Display der Kasse zeigt eine Gleichung.',R=>{const m=R.nz(-5,5),b=R.nz(-6,8);
+    return{q:`Wie groß ist die Steigung m der Geraden ${yf(m,b)}?`,parts:[I([{l:'m =',a:m}])],
+      hints:['m steht direkt vor dem x.','In y = mx + b ist m die Zahl vor dem x, mit Vorzeichen.'+(Math.abs(m)===1?' Steht nur x oder −x da, ist m gleich 1 oder −1.':'')]}}),
+  G('1.2','Preisschild','schild','Das Preisschild flackert und will einen Punkt prüfen.',R=>{const m=R.nz(-3,3),b=R.nz(-6,6),x=R.int(1,4),on=R.f()<.5,y=m*x+b+(on?0:R.pick([-2,-1,1,2]));
+    return{q:`Liegt der Punkt P(${fz(x)} | ${fz(y)}) auf der Geraden ${yf(m,b)}?`,
+      parts:[YN(on?0:1,on?[null,'Setz nochmal genau ein und rechne Schritt für Schritt.']:['Rechne nochmal: Kommt wirklich der y-Wert des Punktes heraus?',null]),
+        I([{l:'y =',a:m*x+b}],{q:`Zur Probe: Welchen y-Wert hat die Gerade bei x = ${fz(x)} wirklich?`})],
+      hints:[`Setze x = ${fz(x)} in die Gleichung ein.`,`Rechne ${calc(m,x,b)} und vergleiche mit dem y-Wert des Punktes.`]}}),
+  G('1.3','Lichtschranke','laser','Zwei Sensoren hängen im Raum. Trifft der Laser beide, geht die Schranke auf.',R=>{let b,d,m,y2;
+    do{b=R.int(-1,5);d=R.pick([2,4]);m=R.pick([-1,-.5,.5,1,1.5,2,3]);y2=b+m*d}while(!Number.isInteger(y2)||y2<-2||y2>12||(m===1&&b===0));
+    return{q:'Stelle m und b so ein, dass der Laser beide Sensoren trifft.',parts:[{t:'laser',targets:[[0,b],[d,y2]],m,b,x:[-2,6],y:[-2,12]}],
+      hints:['b ist der y-Wert bei x = 0. Ein Sensor sitzt genau dort.',`m ist der Höhenunterschied geteilt durch den Abstand in x-Richtung. Hier: (${fz(y2)} − ${par(b)}) geteilt durch ${d}.`]}}),
+  G('1.4','Scanner','scanner','Der Scanner verlangt einen Funktionswert.',R=>{const m=R.pick([.5,-.5,2,-2,3,-3,1.5]),x=R.pick([-4,-2,2,4]),b=R.nz(-5,6);
+    return{q:`Berechne y für x = ${fz(x)} bei der Geraden ${yf(m,b)}.`,parts:[I([{l:'y =',a:m*x+b}])],
+      hints:[`Setze x = ${fz(x)} ein.`+(x<0?' Achtung: x ist negativ, rechne mit Klammer.':''),`${fz(m)} · ${par(x)} = ${fz(m*x)}. Dann rechne ${b<0?'− '+(-b):'+ '+b}.`]}}),
+  G('1.5','Werbeposter','poster','Auf dem Poster sind vier Geraden abgebildet. Eine ist parallel zu einer anderen.',R=>{let m,b,b2;
+    do{m=R.nz(-4,4);b=R.nz(-5,5);b2=R.nz(-5,6)}while(Math.abs(m)<2||b2===b||Math.abs(b)===Math.abs(m)||(b===m+1&&b2===m));
+    return{q:`Welche Gerade ist parallel zu ${yf(m,b)}?`,
+      parts:[C([yf(m,b2),yf(-m,b),yf(b,m),yf(m+1,b2)],0,{why:[null,'Gleiche Zahl, aber anderes Vorzeichen. Diese Gerade ist gespiegelt, nicht parallel.','Hier sind m und b vertauscht. Parallel heißt: gleiche Steigung m.','Die Steigung ist eine andere. Parallele Geraden haben genau dieselbe Steigung.'],sign:[1]})],
+      hints:['Parallele Geraden haben dieselbe Steigung.',`Suche die Gerade, bei der vor dem x eine ${fz(m)} steht.`]}})
+ ]},
+{room:'Handy-Abteilung',topic:'Grafisch lösen',scene:'handy',code:'graph',tint:'#5AA9FF',
+ intro:'TÜR 2 VERRIEGELT. Das Laser-Raster ist scharf. Ein Rechenfehler löst Alarm aus. Also genau hinschauen.',
+ outro:'Das Raster schaltet ab. Die Tür zum Lager springt auf.',
+ clue:'Beweis 2: Das Laser-Raster wurde um 19:58 neu eingestellt. Eine Gerade zeigt in die falsche Richtung.',
+ puzzles:[
+  G('2.1','Handy-Vitrine','vitrine','Zwei Laserstrahlen kreuzen sich über den Handys. Dort sitzt der Alarmsensor.',R=>{const g=genCross(R,[1,2],[-1]);
+    return{q:'Tippe auf den Schnittpunkt der beiden Geraden.',
+      parts:[{t:'graph',lines:[{m:g.m1,b:g.b1,name:'I: '+yf(g.m1,g.b1),col:ORANGE},{m:g.m2,b:g.b2,name:'II: '+yf(g.m2,g.b2),col:BLUE}],x:[-2,6],y:[-4,8],a:[g.x,g.y]}],
+      hints:['Wo kreuzen sich die beiden Linien? Tippe genau auf diesen Gitterpunkt.','Lies erst x ab (nach rechts), dann y (nach oben). Mach danach die Probe in beiden Gleichungen.']}}),
+  G('2.2','Vorführ-Tablet','tablet','Auf dem Tablet läuft eine Animation mit zwei Geraden.',R=>{const g=genCross(R,[2,3],[-1,-2]);
+    return{q:'Tippe auf den Schnittpunkt der beiden Geraden.',
+      parts:[{t:'graph',lines:[{m:g.m1,b:g.b1,name:'I: '+yf(g.m1,g.b1),col:ORANGE},{m:g.m2,b:g.b2,name:'II: '+yf(g.m2,g.b2),col:BLUE}],x:[-2,6],y:[-4,8],a:[g.x,g.y]}],
+      hints:['Folge jeder Linie mit dem Finger bis zu der Stelle, an der sie sich treffen.',`Der Punkt liegt ${g.x===0?'auf der y-Achse':'rechts von der y-Achse'} und ${g.y===0?'auf der x-Achse':'über der x-Achse'}.`]}}),
+  G('2.3','Leihstation','kasse','Die Leihstation vergleicht zwei Tablet-Verleiher.',R=>{const ra=R.int(1,3),rb=ra+R.int(1,2),t=R.int(2,6),b0=R.int(0,4),a0=b0+t*(rb-ra);
+    return{q:`Verleih A kostet ${a0} € plus ${ra} € pro Stunde. Verleih B kostet ${b0?b0+' € plus ':''}${rb} € pro Stunde. Wann sind beide gleich teuer, und was kostet es dann?`,
+      parts:[I([{l:'Nach',a:t,u:'Stunden',n:'Die Zeit'},{l:'Preis',a:a0+ra*t,u:'€',n:'Der Preis'}])],
+      hints:[`Gleich teuer heißt: ${a0} + ${lin([ra,'x'])} = ${b0?b0+' + ':''}${lin([rb,'x'])}.`,'Löse nach x auf. Setze x dann in eine der beiden Seiten ein.']}}),
+  G('2.4','Prüfscanner','scanner','Der Prüfscanner will wissen, ob ein Punkt zu beiden Geraden passt.',R=>{const g=genProbe(R,true);
+    return{q:`Ist (${fz(g.x)} | ${fz(g.y)}) eine Lösung des Systems? ${sys(g.e1,g.e2)}`,
+      parts:[{t:'probe',c:g.on?0:1,bad:g.bad,term:g.term}],
+      hints:[`Setze x = ${fz(g.x)} und y = ${fz(g.y)} in beide Gleichungen ein.`,'Beide Gleichungen müssen stimmen. Stimmt auch nur eine nicht, ist es keine Lösung.']}}),
+  G('2.5','Akkutresor','tresor','Der Tresor öffnet nur, wenn die Probe stimmt.',R=>{const g=genProbe(R,false);
+    return{q:`Ist (${fz(g.x)} | ${fz(g.y)}) eine Lösung des Systems? ${sys(g.e1,g.e2)}`,
+      parts:[{t:'probe',c:g.on?0:1,bad:g.bad,term:g.term}],
+      hints:[`Setze x = ${fz(g.x)} und y = ${fz(g.y)} in beide Gleichungen ein.`,'Rechne jede Seite einzeln aus. Minus mal Minus ergibt Plus.']}})
+ ]},
+{room:'Lager',topic:'Gleichsetzen und Einsetzen',scene:'lager',code:'y',tint:'#E8C25A',
+ intro:'TÜR 3 VERRIEGELT. Im Lager stapeln sich Kisten voller Zettel. Mit Gleichsetzen und Einsetzen knackst du die Schlösser. Fünf von sechs genügen. Achtung: Ab hier ist das Türdisplay kaputt. Den Türcode musst du aus den Karten berechnen.',
+ outro:'Die Gabelstapler stehen still. Ganz hinten öffnet sich die Tür zum Büro.',
+ clue:'Beweis 3: Im Lager liegt ein Zettel von Azubi Piet. In seiner Rechnung steckt ein Vorzeichenfehler.',
+ puzzles:[
+  G('3.1','Kiste 7','kiste','Das Zahlenschloss der Kiste braucht ein Zahlenpaar.',R=>{const s=genSysY(R);
+    return{q:`Löse mit dem Gleichsetzungsverfahren. ${sys(yf(s.m1,s.b1),yf(s.m2,s.b2))}`,parts:[I(XY(s.x,s.y))],
+      hints:[`Gleichsetzen heißt: ${lin([s.m1,'x'],[s.b1,''])} = ${lin([s.m2,'x'],[s.b2,''])}.`,'Bring alle x auf eine Seite und alle Zahlen auf die andere. Setze x dann in I ein.']}}),
+  G('3.2','Regal C','regal','Am Regal hängt ein Zahlenschloss.',R=>{const s=genSysY(R);
+    return{q:`Löse mit dem Gleichsetzungsverfahren. ${sys(yf(s.m1,s.b1),yf(s.m2,s.b2))}`,parts:[I(XY(s.x,s.y))],
+      hints:['Beide Gleichungen sind schon nach y aufgelöst. Setze die rechten Seiten gleich.',`${lin([s.m1,'x'],[s.b1,''])} = ${lin([s.m2,'x'],[s.b2,''])}. Bringe alle x auf eine Seite.`]}}),
+  G('3.3','Waage','waage','Die Waage zeigt ein System und blinkt.',R=>{const s=genSub(R);
+    return{q:`Löse mit dem Einsetzungsverfahren. ${sys(yf(s.m,s.b),std(s.a,s.c,s.e))}`,parts:[I(XY(s.x,s.y))],
+      hints:[`I sagt dir, was y ist. Setze ${insT(s)} für y in II ein.`,`${subT(s)}. Fasse zusammen und löse nach x auf.`]}}),
+  G('3.4','Palette','kiste','Auf der Palette klebt ein Schloss.',R=>{const s=genSub(R,{b0:true});
+    return{q:`Löse mit dem Einsetzungsverfahren. ${sys(yf(s.m,s.b),std(s.a,s.c,s.e))}`,parts:[I(XY(s.x,s.y))],
+      hints:[`Setze ${insT(s)} für y in die zweite Gleichung ein.`,`${subT(s)}. Danach y ausrechnen.`]}}),
+  G('3.5','Lieferschein','akte','Zwischen den Lieferscheinen steckt ein Zettel von Piet. Seine Rechnung stimmt nicht.',R=>{const w=worked(R,'B');
+    return{q:'Tippe auf die Zeile, in der Piet sich zum ersten Mal verrechnet.',parts:[{t:'spot',lines:w.lines,err:w.err}],
+      hints:['Rechne jede Zeile selbst nach. Wo weicht dein Ergebnis zum ersten Mal ab?','Schau dir genau an, was beim Umstellen mit dem Vorzeichen passiert.']}}),
+  G('3.6','Schichtplan','pinnwand','Am Schichtplan hängt ein Code-Rätsel.',R=>{const m=R.int(2,5),b=R.nz(-5,5),a=R.nz(-3,5),c=R.int(2,4),e=R.int(-6,20),ins=lin([m,'x'],[b,'']);
+    return{q:`Setze y = ${ins} in die Gleichung ${std(a,c,e)} ein. Welche Gleichung ist richtig?`,
+      parts:[C([`${lin([a,'x'])} + ${c}(${ins}) = ${fz(e)}`,`${lin([a,'x'])} + ${c} · ${ins} = ${fz(e)}`,`${lin([a,'x'])} + ${ins} = ${fz(e)}`,`${lin([a,'x'],[c,'y'])} = ${ins}`],0,
+        {why:[null,`Klammer vergessen! Die ${c} gilt für den ganzen Term, nicht nur für das erste Stück.`,`Die ${c} vor dem y ist verschwunden. Sie muss mit.`,'Hier wurde nichts eingesetzt. Das y steht ja noch da.']})],
+      hints:['Du ersetzt y. Alles, was zu y gehört, kommt in eine Klammer.',`Die ${c} vor y gilt für die ganze Klammer.`]}})
+ ]},
+{room:'Büro der Filialleitung',topic:'Additionsverfahren',scene:'buero',code:'std',tint:'#5BE0B8',
+ intro:'TÜR 4 VERRIEGELT. Frau Tans Büro ist abgeschlossen, auch der Tresor. Addiere dich durch. Vier von fünf reichen. Auf den Codekarten stehen jetzt Gleichungen wie 2x + 3y = 12.',
+ outro:'Der Bildschirm im Büro flackert. Hinter einer Wand klappt eine Tür auf.',
+ clue:'Beweis 4: Frau Tans Notiz: "Piet testet heute die neue Preisformel. Start automatisch um 19:58."',
+ puzzles:[
+  G('4.1','Schreibtisch','schreibtisch','Auf dem Bildschirm steht ein System.',R=>{let x,y;do{x=R.nz(-2,9);y=R.nz(-3,8)}while(x===y);
+    return{q:`Löse mit dem Additionsverfahren. ${sys(std(1,1,x+y),std(1,-1,x-y))}`,parts:[I(XY(x,y))],
+      hints:['Addiere beide Gleichungen. Was passiert mit y?',`2x = ${fz(2*x)}. Dann x in I einsetzen.`]}}),
+  G('4.2','Tresor','tresor','Der Tresor will ein Zahlenpaar.',R=>{const s=genAddY(R);
+    return{q:`Löse mit dem Additionsverfahren. ${sys(std(s.a1,s.k,s.c1),std(s.a2,-s.k,s.c2))}`,parts:[I(XY(s.x,s.y))],
+      hints:['Addiere beide Gleichungen. Die y-Terme fallen weg.',`${lin([s.a1+s.a2,'x'])} = ${fz(s.c1+s.c2)}. Setze x danach in eine Gleichung ein.`]}}),
+  G('4.3','Aktenschrank','aktenschrank','Der Aktenschrank hat ein Zahlenschloss.',R=>{const s=genMul(R);
+    return{q:`Löse mit dem Additionsverfahren. ${sys(std(s.a1,s.k,s.c1),std(s.a2,1,s.c2))}`,parts:[I(XY(s.x,s.y))],
+      hints:[`Damit y wegfällt, muss in einer Gleichung +${s.k}y und in der anderen −${s.k}y stehen.`,`Multipliziere II mit −${s.k}. Danach addierst du I und II.`]}}),
+  G('4.4','Pinnwand','pinnwand','Ein Zettel auf der Pinnwand gibt einen Tipp. Er ist unvollständig.',R=>{const s=genMul(R);
+    return{q:`${sys(std(s.a1,s.k,s.c1),std(s.a2,1,s.c2))}. Mit welcher Zahl multiplizierst du II, damit beim Addieren y wegfällt?`,parts:[I([{l:'Zahl:',a:-s.k,n:'der Zahl'}])],
+      hints:[`In I steht +${s.k}y. In II soll am Ende −${s.k}y stehen.`,`Multipliziere ganz II mit der Zahl, die aus +y ein −${s.k}y macht.`]}}),
+  G('4.5','Mappe','akte','In der Mappe liegt ein Lösungsweg, aber die Schritte sind durcheinander.',R=>{const x=R.int(1,5),y=R.int(1,6),b=R.int(2,3),a2=R.int(1,4),c1=x+b*y,c2=a2*x-b*y;
+    return{q:`Bringe die Schritte für ${sys(std(1,b,c1),std(a2,-b,c2))} in die richtige Reihenfolge.`,
+      parts:[{t:'sort',items:[`I und II addieren: ${lin([1+a2,'x'])} = ${fz(c1+c2)}`,`x = ${fz(x)}`,`x = ${fz(x)} in I einsetzen: ${fz(x)} + ${b}y = ${fz(c1)}`,`${b}y = ${fz(c1-x)}, also y = ${fz(y)}`,`Lösung: (${fz(x)} | ${fz(y)})`]}],
+      hints:['Beginne mit dem Addieren. Am Ende steht die Lösung als Paar.','Erst x bestimmen, dann in eine Gleichung einsetzen, dann y.']}})
+ ]},
+{room:'Werkstatt',topic:'Verfahren auswählen',scene:'werk',code:'mix',tint:'#FF7A1A',
+ intro:'TÜR 5 VERRIEGELT. In der Werkstatt hilft nur das richtige Werkzeug. Wähle bei jedem System das Verfahren, das am schnellsten geht. Vier von fünf reichen.',
+ outro:'Ein Schraubenschlüssel rollt vom Tisch. Die Tür zum Gang schwingt auf.',
+ clue:'Beweis 5: Auf der Werkbank liegt ein Ausdruck der neuen Preisformel. Eine Zeile rechnet mit dem falschen Vorzeichen.',
+ puzzles:[
+  G('5.1','Werkbank','werkbank','Auf der Werkbank liegt ein System.',R=>{const s=genSysY(R);
+    return{q:sys(yf(s.m1,s.b1),yf(s.m2,s.b2)),parts:[VERF(0),I(XY(s.x,s.y))],
+      hints:['Beide Gleichungen sind schon nach y aufgelöst.',`Dann lohnt sich Gleichsetzen: ${lin([s.m1,'x'],[s.b1,''])} = ${lin([s.m2,'x'],[s.b2,''])}.`]}}),
+  G('5.2','Werkzeugkiste','werkzeug','Die Werkzeugkiste hat ein Schloss.',R=>{const s=genSub(R,{b0:true});
+    return{q:sys(yf(s.m,s.b),std(s.a,s.c,s.e)),parts:[VERF(1),I(XY(s.x,s.y))],
+      hints:['In I steht schon, was y ist. Das kannst du direkt einsetzen.',subT(s)]}}),
+  G('5.3','Prüfgerät','tablet','Das Prüfgerät zeigt ein System.',R=>{const s=genAddY(R);
+    return{q:sys(std(s.a1,s.k,s.c1),std(s.a2,-s.k,s.c2)),parts:[VERF(2),I(XY(s.x,s.y))],
+      hints:[`Schau auf y: einmal +${lin([s.k,'y'])}, einmal −${lin([s.k,'y'])}.`,`Addieren: ${lin([s.a1+s.a2,'x'])} = ${fz(s.c1+s.c2)}.`]}}),
+  G('5.4','Ersatzteile','regal','Im Ersatzteilregal liegt ein Zettel. Das Verfahren darfst du frei wählen.',R=>{const s=genSub(R,{cmin:2});
+    return{q:sys(yf(s.m,s.b),std(s.a,s.c,s.e)),parts:[I(XY(s.x,s.y))],
+      hints:[`Setze ${insT(s)} für y in II ein.`,`${subT(s)}. Klammer auflösen nicht vergessen.`]}}),
+  G('5.5','Schaltplan','poster','Der Schaltplan enthält ein System und eine Frage.',R=>{const s=genAddX(R);
+    return{q:sys(std(s.a,s.b1,s.c1),std(-s.a,s.b2,s.c2)),parts:[VERF(2,'Welches Verfahren ist hier am schnellsten?'),I(XY(s.x,s.y))],
+      hints:[`Bei x steht +${lin([s.a,'x'])} und −${lin([s.a,'x'])}. Das fällt beim Addieren weg.`,`${lin([s.b1+s.b2,'y'])} = ${fz(s.c1+s.c2)}. Danach y einsetzen.`]}})
+ ]},
+{room:'Haustechnik',topic:'Schnittpunkt berechnen',scene:'technik',tint:'#E8C25A',bonus:true,
+ intro:'BONUSRAUM. Hier musst du nicht raus. Hier zählen alle Punkte doppelt. Die Schlösser prüfen deinen Rechenweg, nicht nur das Ergebnis. Für jedes System gibt es ein Verfahren, das am schnellsten geht. Die Tür kannst du jederzeit nehmen.',
+ outro:'Du verlässt die Haustechnik. Irgendwo springt ein Lüfter an.',
+ clue:'Beweis 5b: Der Hauptschalter wurde um 19:58 nicht von Hand betätigt. Ein Software-Befehl hat ihn ausgelöst.',
+ puzzles:[
+  G('6.1','Sicherung A','schaltschrank','Das Schloss prüft deinen Rechenweg. Beide Gleichungen sind nach y aufgelöst.',R=>{const s=genSysY(R),L1=lin([s.m1,'x'],[s.b1,'']),L2=lin([s.m2,'x'],[s.b2,'']);
+    return{q:`Berechne den Schnittpunkt der Geraden ${yf(s.m1,s.b1)} und ${yf(s.m2,s.b2)}.`,
+      parts:[C([`${L1} = ${L2}`,`${L1} = ${lin([s.m2,'x'],[-s.b2,''])}`,`${lin([s.m1,'x'],[-s.b1,''])} = ${L2}`,`${lin([s.m1,'x'],[s.b1,''],[s.m2,'x'],[s.b2,''])} = 0`],0,
+        {q:'Welche Gleichung entsteht beim Gleichsetzen?',sign:[1,2],why:[null,'Vorzeichenfehler rechts. Beim Gleichsetzen schreibst du die Terme einfach ab.','Vorzeichenfehler links. Beim Gleichsetzen schreibst du die Terme einfach ab.','Gleichsetzen heißt: rechte Seiten gleichsetzen, nicht addieren.']}),
+        I(XY(s.x,s.y),{q:'Schnittpunkt S(x | y):'})],
+      hints:['Setze die rechten Seiten gleich.',`${lin([s.m1-s.m2,'x'])} = ${fz(s.b2-s.b1)}. Danach x in eine der beiden Gleichungen einsetzen.`]}}),
+  G('6.2','Sicherung B','schaltschrank','Hier steht schon, was y ist. Das lässt sich direkt einsetzen.',R=>{const s=genSub(R,{cmin:2}),ins=insT(s),aa=s.a===1?'':s.a===-1?'−':fz(s.a);
+    return{q:`Berechne den Schnittpunkt von ${sys(yf(s.m,s.b),std(s.a,s.c,s.e))}.`,
+      parts:[C([subT(s),`${lin([s.a,'x'],[s.c*s.m,'x'],[s.b,''])} = ${fz(s.e)}`,`${lin([s.a,'x'],[s.c,'y'])} = ${ins}`,`${aa}(${ins}) + ${lin([s.c,'y'])} = ${fz(s.e)}`],0,
+        {q:'Welche Gleichung entsteht beim Einsetzen von I in II?',why:[null,`Klammer nur halb aufgelöst: Die ${s.c} muss mit jedem Term in der Klammer multipliziert werden.`,'Hier wurde nichts eingesetzt. Das y steht ja noch da.','Falsche Variable ersetzt: I sagt dir, was y ist, nicht x.']}),
+        I(XY(s.x,s.y),{q:'Schnittpunkt S(x | y):'})],
+      hints:[`I sagt dir, was y ist. Ersetze y in II durch ${ins}.`,`${subT(s)}. Klammer auflösen, dann nach x auflösen.`]}}),
+  G('6.3','Sicherung C','schaltschrank','Bei y steht einmal plus und einmal minus.',R=>{const s=genAddY(R);
+    return{q:`Berechne den Schnittpunkt von ${sys(std(s.a1,s.k,s.c1),std(s.a2,-s.k,s.c2))}.`,
+      parts:[C([`${lin([s.a1+s.a2,'x'])} = ${fz(s.c1+s.c2)}`,`${lin([s.a1-s.a2,'x'])} = ${fz(s.c1+s.c2)}`,`${lin([s.a1+s.a2,'x'])} = ${fz(s.c1-s.c2)}`,`${lin([s.a1+s.a2,'x'],[2*s.k,'y'])} = ${fz(s.c1+s.c2)}`],0,
+        {q:'Was steht nach dem Addieren von I und II?',sign:[1,2],why:[null,'Beim Addieren werden die x-Terme addiert, nicht subtrahiert.','Rechts musst du auch addieren, nicht subtrahieren.',`Die y-Terme heben sich auf: +${lin([s.k,'y'])} und −${lin([s.k,'y'])} ergibt 0.`]}),
+        I(XY(s.x,s.y),{q:'Schnittpunkt S(x | y):'})],
+      hints:['Addiere die Gleichungen. Die y-Terme heben sich auf.',`${lin([s.a1+s.a2,'x'])} = ${fz(s.c1+s.c2)}. Danach x in I einsetzen.`]}}),
+  G('6.4','Verteiler','aktenschrank','Hier passt nichts direkt zusammen. Du musst erst umformen.',R=>{let a1,a2,k,x,y;do{a1=R.int(1,4);a2=R.int(1,5);k=R.int(1,3);x=R.nz(-2,5);y=R.nz(-2,6)}while(a2-2*a1===0);
+    const c1=a1*x+k*y,c2=a2*x+2*k*y;
+    return{q:`Berechne den Schnittpunkt von ${sys(std(a1,k,c1),std(a2,2*k,c2))}.`,
+      parts:[C(['I mal −2','I mal 2','II mal 2','II mal −1'],0,{fixed:true,q:'Welche Umformung lässt beim Addieren y wegfallen?',sign:[1],
+        why:[null,'Dann haben beide y-Terme dasselbe Vorzeichen. Beim Addieren verdoppelt sich y, statt wegzufallen.','Dann steht in II noch mehr y, und beide Vorzeichen sind gleich.','Dann stehen +'+lin([k,'y'])+' und −'+lin([2*k,'y'])+' da. Das hebt sich nicht ganz auf.']}),
+        I(XY(x,y),{q:'Schnittpunkt S(x | y):'})],
+      hints:[`In I steht +${lin([k,'y'])}, in II steht +${lin([2*k,'y'])}. Du brauchst −${lin([2*k,'y'])} in I.`,`Multipliziere I mit −2 und addiere II: ${lin([a2-2*a1,'x'])} = ${fz(c2-2*c1)}.`]}}),
+  G('6.5','Laser-Labor','laser','Im Laser-Labor zeichnest du die Lösung. Der Schnittpunkt ist der Treffpunkt der Laser.',R=>{const g=genCross(R,[1,2,3],[-1,-2],(m1,b1,m2,b2)=>(m1===1&&b1===0)||(m2===-2&&b2===2));
+    return{q:`Stelle Laser I auf ${yf(g.m1,g.b1)} und Laser II auf ${yf(g.m2,g.b2)} ein. Tippe dann auf den Schnittpunkt.`,
+      parts:[{t:'draw',lines:[{m:g.m1,b:g.b1,tag:'Laser I',col:ORANGE},{m:g.m2,b:g.b2,tag:'Laser II',col:BLUE}],x:[-2,6],y:[-4,8],a:[g.x,g.y]}],
+      hints:[`Laser I: Steigung ${fz(g.m1)}, y-Achsenabschnitt ${fz(g.b1)}. Laser II: Steigung ${fz(g.m2)}, y-Achsenabschnitt ${fz(g.b2)}.`,'Der Schnittpunkt liegt dort, wo beide Laser sich treffen. Prüfe ihn mit einer Probe.']}}),
+  G('6.6','Kühlung','server','Zwei Server regeln ihre Temperatur. Wann sind sie gleich warm?',R=>{const t=R.int(3,8),ra=R.int(1,3),rb=R.int(1,2),TB=R.int(12,20),T=TB+rb*t,TA=T+ra*t;
+    return{q:`Server A hat ${TA} °C und kühlt um ${ra} °C pro Minute ab. Server B hat ${TB} °C und heizt sich um ${rb} °C pro Minute auf. Wann haben beide dieselbe Temperatur, und wie warm ist es dann?`,
+      parts:[I([{l:'Nach',a:t,u:'Minuten',n:'Die Zeit'},{l:'Temperatur',a:T,u:'°C',n:'Die Temperatur'}])],
+      hints:[`Stelle zwei Gleichungen auf: A: T = ${TA} − ${lin([ra,'t'])} und B: T = ${TB} + ${lin([rb,'t'])}.`,`Gleichsetzen: ${TA} − ${lin([ra,'t'])} = ${TB} + ${lin([rb,'t'])}. Löse nach t auf und setze t ein.`]}}),
+  G('6.7','Hauptschalter','hauptschalter','Der Hauptschalter hat ein Meisterschloss. Das Verfahren darfst du frei wählen.',R=>{const a=R.int(2,4),b=R.int(2,3),x=R.nz(-2,4),y=R.nz(-3,6),c=a*x-y,d=x+b*y;
+    return{q:`Berechne den Schnittpunkt von ${sys(std(a,-1,c),std(1,b,d))}.`,parts:[I(XY(x,y),{q:'Schnittpunkt S(x | y):'})],
+      hints:[`Löse I nach y auf: ${yf(a,-c)}. Dann in II einsetzen.`,`x + ${b}(${lin([a,'x'],[-c,''])}) = ${fz(d)}. Klammer auflösen nicht vergessen.`]}})
+ ]},
+{room:'Überwachungsraum',topic:'Lösungsvielfalt und Sachaufgaben',scene:'ueberw',code:'mix',tint:'#5AA9FF',
+ intro:'TÜR 6 VERRIEGELT. Die Kameras zeigen, wer wo war. Wer war im Serverraum? In den Kamera-Rätseln ist x die Zeit in Minuten nach 19:50 und y die Gangnummer. Fünf von sechs genügen.',
+ outro:'Die Monitore gehen aus, bis auf einen. Er zeigt den Serverraum. Dort ist die Tür offen.',
+ clue:'Beweis 6: Niemand war im Serverraum. Die Wege von Kurz, Frau Tan und Piet sind sauber. Der Fehler sitzt in ARGUS selbst.',
+ puzzles:[
+  camPuzzle(0),camPuzzle(1),camPuzzle(2),
+  G('7.4','Abo-Abrechnung','tablet','Auf dem Bildschirm stehen zwei Streamingdienste.',R=>{const d=R.int(1,2),n=R.int(3,8),a=R.int(3,6);
+    return{q:`Dienst A kostet ${n*d} € Einrichtung plus ${a} € pro Monat. Dienst B kostet ${a+d} € pro Monat. Nach wie vielen Monaten sind beide gleich teuer?`,
+      parts:[I([{l:'Nach',a:n,u:'Monaten',n:'Die Zeit'}])],
+      hints:[`Gleich teuer heißt: ${n*d} + ${a}x = ${a+d}x.`,'Löse nach x auf. x ist die Anzahl der Monate.']}}),
+  G('7.5','Warenkorb','kiste','Im Warenkorb liegt ein Kassenbon, aber die Einzelpreise fehlen.',R=>{const pp=R.int(8,20),kk=R.int(2,7),[p1,k1]=R.pick([[2,1],[3,1]]),[p2,k2]=R.pick([[1,2],[1,3]]);
+    const pb=n=>['eine Powerbank','zwei Powerbanks','drei Powerbanks'][n-1],kb=n=>['ein Kabel','zwei Kabel','drei Kabel'][n-1],cap=s=>s[0].toUpperCase()+s.slice(1);
+    const A=p1*pp+k1*kk,B=p2*pp+k2*kk;
+    return{q:`${cap(pb(p1))} und ${kb(k1)} kosten ${A} €. ${cap(pb(p2))} und ${kb(k2)} kosten ${B} €. Wie viel kostet jedes?`,
+      parts:[I([{l:'Powerbank',a:pp,u:'€'},{l:'Kabel',a:kk,u:'€'}])],
+      hints:['Nenne den Preis der Powerbank P und den des Kabels K. Stelle zwei Gleichungen auf.',`${lin([p1,'P'],[k1,'K'])} = ${A} und ${lin([p2,'P'],[k2,'K'])} = ${B}. Löse mit einem Verfahren deiner Wahl.`]}}),
+  G('7.6','Dienstplan','akte','Auf dem Dienstplan steht ein Rätsel.',R=>{const m=R.nz(-3,4),b0=R.nz(-5,6),k=R.int(2,3);
+    return{q:`Für welches b liegt die Gerade y = ${lin([m,'x'])} + b genau auf der Geraden ${k}y = ${lin([k*m,'x'],[k*b0,''])}, sodass es unendlich viele Lösungen gibt?`,
+      parts:[I([{l:'b =',a:b0}])],
+      hints:[`Teile die zweite Gleichung durch ${k}. Dann siehst du sie in der Form y = mx + b.`,'Damit die Geraden genau übereinander liegen, müssen Steigung und y-Achsenabschnitt gleich sein.']}})
+ ]},
+{room:'Serverraum',topic:'Prüfungsstil, Teil A, ohne Taschenrechner',scene:'server',code:'std',tint:'#5AA9FF',
+ intro:'LETZTE TÜR. Im Serverraum startet ARGUS neu, wenn du drei von vier Reparatur-Codes eingibst. Kein Taschenrechner, wie in der Prüfung, Teil A.',
+ outro:'Die Reparatur-Codes sind drin. Aber ARGUS startet nicht neu. Auf dem Bildschirm blinkt: URSACHE UNBEKANNT. BITTE FEHLER BENENNEN.',
+ clue:'Beweis 7: Die Reparatur-Codes stimmen. Trotzdem rechnet ARGUS immer noch mit der Preisformel von 19:58.',
+ puzzles:[
+  G('B.1','Serverturm A','server','Der Server verlangt den ersten Reparatur-Code.',R=>{const s=genAddX(R);
+    return{q:`Löse das System. ${sys(std(s.a,s.b1,s.c1),std(-s.a,s.b2,s.c2))}`,parts:[I(XY(s.x,s.y))],
+      hints:['Addiere die beiden Gleichungen. Was fällt weg?',`${lin([s.b1+s.b2,'y'])} = ${fz(s.c1+s.c2)}. Danach y in I einsetzen.`]}}),
+  G('B.2','Konsole','terminal','Die Konsole will eine Kopfrechnung.',R=>{const [p,q,r,s]=R.pick([[3,4,1,6],[2,3,1,4],[1,6,3,8],[2,5,1,3],[3,8,1,6],[1,4,2,5],[5,6,1,4],[2,3,1,6]]);
+    const gcd=(u,v)=>v?gcd(v,u%v):u,l=q*s/gcd(q,s);
+    return{q:`Berechne ${p}/${q} + ${r}/${s}. Gib das Ergebnis als Bruch an, zum Beispiel 5/8.`,parts:[I([{l:'Ergebnis',a:p/q+r/s,frac:true,n:'dem Ergebnis'}])],
+      hints:[`Bringe beide Brüche auf den Hauptnenner ${l}.`,`${p*l/q}/${l} + ${r*l/s}/${l}`]}}),
+  G('B.3','Serverturm B','server','Der zweite Server fragt nach einer Sachaufgabe.',R=>{let k,hh;do{k=R.int(15,40);hh=R.int(5,15)}while(k===hh);const A=2*k+hh,B=k+2*hh;
+    return{q:`Zwei Kopfhörer und eine Hülle kosten zusammen ${A} €. Ein Kopfhörer und zwei Hüllen kosten ${B} €.`,
+      parts:[C([`2k + h = ${A} und k + 2h = ${B}`,`k + 2h = ${A} und 2k + h = ${B}`,`2k + h = ${A} und 2k + h = ${B}`,`k + h = ${A} und k + h = ${B}`],0,
+        {q:'Welches System passt? k ist der Preis eines Kopfhörers, h der einer Hülle.',why:[null,'Vertauscht: Zwei Kopfhörer und eine Hülle heißt 2k + h.','Die zweite Aussage hat andere Anzahlen: ein Kopfhörer, zwei Hüllen.','Die Anzahlen fehlen: Zwei Kopfhörer kosten 2k, nicht k.']}),
+        I([{l:'Kopfhörer',a:k,u:'€'},{l:'Hülle',a:hh,u:'€'}],{q:'Wie viel kostet jedes?'})],
+      hints:['Zwei Kopfhörer und eine Hülle: 2k + h.','Löse das System mit einem Verfahren deiner Wahl.']}}),
+  P('B.4','Notfall-Panel','terminal','Das Notfall-Panel zeigt eine Behauptung.','Eine Schülerin sagt: "Wenn zwei Geraden die gleiche Steigung haben, gibt es immer keine Lösung." Stimmt das?',
+    [C(['Wahr: Parallele Geraden schneiden sich nie.','Falsch: Bei gleichem y-Achsenabschnitt liegen die Geraden aufeinander. Dann gibt es unendlich viele Lösungen.','Falsch: Es gibt dann immer genau eine Lösung.'],1,
+      {why:['Fast. Aber was ist, wenn auch der y-Achsenabschnitt gleich ist?',null,'Genau eine Lösung gibt es nur bei verschiedenen Steigungen.']})],
+    ['Denk an parallele Geraden und an Geraden, die genau aufeinander liegen.','Was passiert, wenn auch das b gleich ist?'])
+ ]}
+];
+
+/* Zufallsrätsel einmal pro Runde erzeugen und merken */
+const INST=new Map();
+function inst(p){
+  if(!p.gen)return p;
+  const k=S.seed+'|'+p.id;
+  if(!INST.has(k))INST.set(k,{...p,...p.gen(mkR(S.seed,p.id))});
+  return INST.get(k);
+}
+
+/* ================= GRAFIK ================= */
+const DEFS=`<defs>
+<linearGradient id="wall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#15223A"/><stop offset="1" stop-color="#1F3050"/></linearGradient>
+<linearGradient id="floor" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#101A2C"/><stop offset="1" stop-color="#080E1B"/></linearGradient>
+<linearGradient id="cone" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FF7A1A" stop-opacity=".24"/><stop offset="1" stop-color="#FF7A1A" stop-opacity="0"/></linearGradient>
+<linearGradient id="beyond" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFE7C2"/><stop offset="1" stop-color="#FF9B4A"/></linearGradient>
+<pattern id="haz" width="24" height="24" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="12" height="24" fill="#FF7A1A"/><rect x="12" width="12" height="24" fill="#111B2E"/></pattern>
+<pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse"><circle cx="11" cy="11" r="1.8" fill="#3A4F75"/></pattern>
+<clipPath id="dclip"><rect x="792" y="146" width="166" height="306"/></clipPath>
+</defs>`;
+
+const sky=(x,y,w,hh)=>{let o='',cx=x;const hs=[.5,.8,.4,.9,.6,.75,.45,.85,.55,.7];
+  for(let i=0;cx<x+w;i++){const bw=Math.min(40+(i*17)%30,x+w-cx),bh=hh*hs[i%10];
+    o+=`<rect x="${cx}" y="${y+hh-bh}" width="${bw}" height="${bh}" fill="#13203A"/>`;
+    for(let k=0;k<4;k++){if((i+k)%3)o+=`<rect x="${cx+6+(k%2)*16}" y="${y+hh-bh+10+Math.floor(k/2)*18}" width="8" height="10" fill="#F3C969" opacity=".6"/>`}
+    cx+=bw+4}
+  return o};
+const DECOR={
+hall:()=>`<rect x="40" y="64" width="700" height="200" fill="#0B1528"/>${sky(40,64,700,200)}<path d="M273 64V264M507 64V264M40 164H740" stroke="#2D4468" stroke-width="6"/><rect x="40" y="64" width="700" height="200" fill="none" stroke="#2D4468" stroke-width="8"/><text x="390" y="44" class="brand neon" text-anchor="middle">TECHNOVA</text><rect x="40" y="272" width="700" height="8" fill="#223657"/>`,
+handy:()=>{let o='<text x="390" y="44" class="brand" text-anchor="middle">HANDY-WELT</text>';
+  for(let r=0;r<3;r++){o+=`<rect x="50" y="${110+r*72}" width="700" height="6" fill="#2D4468"/>`;
+    for(let k=0;k<14;k++)o+=`<rect x="${64+k*49}" y="${r*72+70}" width="24" height="40" rx="3" fill="${k%7===3?'#FF7A1A':(k%2?'#46679F':'#2C426A')}"/>`}
+  return o+'<path d="M50 330L750 84M50 110L750 330" stroke="#FF7A1A" stroke-width="2" opacity=".6"/>'},
+lager:()=>{let o='<text x="390" y="44" class="brand" text-anchor="middle">LAGER</text>';
+  for(let c=0;c<3;c++){const x=50+c*240;o+=`<rect x="${x}" y="64" width="220" height="300" fill="none" stroke="#3A4F75" stroke-width="5"/>`;
+    for(let r=0;r<3;r++){o+=`<rect x="${x}" y="${150+r*72}" width="220" height="5" fill="#3A4F75"/><rect x="${x+14}" y="${100+r*72}" width="${50+(c+r)*8}" height="50" fill="#B98A52" opacity=".75"/><rect x="${x+110}" y="${112+r*72}" width="70" height="38" fill="#8D6A3A" opacity=".8"/>`}}
+  return o+'<rect x="40" y="372" width="720" height="14" fill="url(#haz)" opacity=".6"/>'},
+buero:()=>{let o='<text x="390" y="44" class="brand" text-anchor="middle">FILIALLEITUNG</text><rect x="60" y="70" width="240" height="180" fill="#0B1528"/>';
+  for(let i=0;i<10;i++)o+=`<rect x="60" y="${78+i*17}" width="240" height="7" fill="#2D4468"/>`;
+  return o+`<rect x="60" y="70" width="240" height="180" fill="none" stroke="#2D4468" stroke-width="8"/><rect x="390" y="80" width="200" height="130" rx="4" fill="#E9E2D2" opacity=".92"/><path d="M406 190L450 150L490 168L570 100" stroke="#FF7A1A" stroke-width="5" fill="none" stroke-linejoin="round"/><path d="M406 100L570 190" stroke="#3F6FB5" stroke-width="5" fill="none"/><path d="M406 196H574M406 196V96" stroke="#111B2E" stroke-width="3"/>`},
+werk:()=>{let o='<text x="390" y="44" class="brand" text-anchor="middle">WERKSTATT</text><rect x="50" y="70" width="540" height="240" rx="6" fill="#1A2B47"/><rect x="50" y="70" width="540" height="240" rx="6" fill="url(#dots)"/>';
+  const tools=[[100,110,200],[150,110,170],[210,120,220],[270,100,180],[330,110,230],[400,120,170],[470,100,210]];
+  tools.forEach((t,i)=>{o+=`<path d="M${t[0]} ${t[1]}V${t[2]}" stroke="${i%2?'#9AA9C4':'#FF7A1A'}" stroke-width="9" stroke-linecap="round"/><circle cx="${t[0]}" cy="${t[1]}" r="11" fill="none" stroke="${i%2?'#9AA9C4':'#FF7A1A'}" stroke-width="6"/>`});
+  return o},
+ueberw:()=>{let o='<text x="390" y="40" class="brand" text-anchor="middle">ÜBERWACHUNG</text>';
+  for(let j=0;j<2;j++)for(let i=0;i<4;i++){const x=50+i*178,y=60+j*148;
+    o+=`<rect x="${x}" y="${y}" width="160" height="120" rx="6" fill="#0A1C2A" stroke="#2D4468" stroke-width="4"/>`;
+    if((i+j)%2===0){const k=['kurz','tan','piet','tan'][(j*4+i)/2|0];o+=`<g transform="translate(${x+45} ${y+22}) scale(.7)" opacity=".85">${PORTRAIT[k]}</g><rect x="${x+2}" y="${y+2}" width="156" height="116" fill="#6FB9E6" opacity=".12"/><text x="${x+8}" y="${y+112}" font-size="11" fill="#6FB9E6" font-family="monospace">${PEOPLE[k].short.toUpperCase()}</text>`}
+    else o+=`<path d="M${x+14} ${y+100}H${x+146}M${x+30} ${y+100}L${x+60} ${y+30}H${x+100}L${x+130} ${y+100}" stroke="#2D4468" stroke-width="3" fill="none"/>`;
+    o+=`<circle class="led" cx="${x+142}" cy="${y+14}" r="4" fill="#FF6B88"/><text x="${x+10}" y="${y+18}" font-size="12" fill="#6FB9E6" font-family="monospace">CAM ${j*4+i+1}</text>`}
+  return o},
+technik:()=>{let o='<text x="390" y="44" class="brand" text-anchor="middle">HAUSTECHNIK</text><path d="M40 90H760M40 120H760" stroke="#3A4F75" stroke-width="12"/><path d="M200 90V300M520 120V300" stroke="#3A4F75" stroke-width="12"/>';
+  for(let i=0;i<5;i++)o+=`<rect x="${70+i*130}" y="150" width="90" height="110" rx="6" fill="#16284A" stroke="#2D4468" stroke-width="4"/><rect x="${86+i*130}" y="166" width="58" height="12" fill="${i%2?'#FF7A1A':'#5BE0B8'}" opacity=".8"/><rect x="${86+i*130}" y="190" width="58" height="12" fill="#2D4468"/><rect x="${86+i*130}" y="214" width="34" height="12" fill="#2D4468"/>`;
+  return o+'<rect x="40" y="372" width="720" height="14" fill="url(#haz)" opacity=".6"/>'},
+server:()=>{let o='<text x="390" y="40" class="brand" text-anchor="middle">SERVERRAUM</text><path d="M0 62H1000" stroke="#2D4468" stroke-width="8"/>';
+  for(let r=0;r<6;r++){const x=44+r*118;o+=`<rect x="${x}" y="76" width="100" height="294" rx="4" fill="#0F1B33" stroke="#2D4468" stroke-width="3"/>`;
+    for(let k=0;k<12;k++)o+=`<rect x="${x+8}" y="${84+k*23}" width="84" height="16" rx="2" fill="#16284A"/><circle class="${(r+k)%3?'':'led'}" cx="${x+16}" cy="${92+k*23}" r="3" fill="${(r+k)%4?'#5BE0B8':'#FF7A1A'}"/>`}
+  return o}
+};
+const FLOOR=`<rect y="390" width="1000" height="130" fill="url(#floor)"/><path d="M0 390H1000" stroke="#0A1120" stroke-width="3"/><path d="M0 424H1000M0 470H1000" stroke="#2D4468" opacity=".28"/>`;
+const LAMPS=`<polygon points="190,0 90,390 290,390" fill="url(#cone)"/><polygon points="560,0 460,390 660,390" fill="url(#cone)"/><rect class="lamp" x="170" y="0" width="40" height="9" rx="3" fill="#FF7A1A"/><rect class="lamp" x="540" y="0" width="40" height="9" rx="3" fill="#FF7A1A"/>`;
+
+const PROPS={
+schaltschrank:`<rect class="f1" x="12" y="6" width="76" height="114" rx="4"/><rect class="f2" x="20" y="14" width="60" height="42" rx="2"/><rect class="fo" x="26" y="22" width="12" height="26" rx="2"/><rect class="fs" x="44" y="22" width="12" height="26" rx="2"/><rect class="fy" x="62" y="22" width="12" height="26" rx="2"/><circle class="fo led" cx="50" cy="76" r="9"/><rect class="f3" x="30" y="94" width="40" height="12" rx="2"/>`,
+hauptschalter:`<rect class="f1" x="10" y="20" width="80" height="100" rx="6"/><path class="fo" d="M10 8h80v12H10z"/><rect class="f3" x="28" y="34" width="44" height="54" rx="4"/><rect class="fo" x="44" y="36" width="12" height="40" rx="3" transform="rotate(-18 50 76)"/><circle class="fy" cx="50" cy="104" r="7"/>`,
+kasse:`<rect class="f1" x="6" y="52" width="88" height="68" rx="6"/><rect class="f3" x="14" y="12" width="44" height="34" rx="4"/><rect class="fs" x="18" y="16" width="36" height="26" rx="2"/><rect class="f2" x="62" y="24" width="28" height="24" rx="3"/><path class="f3" d="M67 30h5v5h-5zM76 30h5v5h-5zM67 39h5v5h-5zM76 39h5v5h-5z"/><rect class="f3" x="14" y="62" width="72" height="12" rx="3"/><rect class="fo" x="42" y="66" width="16" height="4" rx="2"/>`,
+schild:`<rect class="fg" x="46" y="36" width="8" height="84"/><rect class="f1" x="26" y="112" width="48" height="8" rx="3"/><path class="fo" d="M8 8h64l22 20-22 20H8z"/><circle class="f3" cx="22" cy="28" r="5"/><text x="52" y="38" class="ptxt" text-anchor="middle">€</text>`,
+scanner:`<rect class="f1" x="20" y="108" width="60" height="12" rx="3"/><rect class="f2" x="36" y="44" width="28" height="66" rx="8"/><rect class="f2" x="18" y="10" width="64" height="38" rx="10"/><rect class="fo" x="24" y="22" width="52" height="5" rx="2"/><rect class="f3" x="30" y="32" width="40" height="8" rx="3"/>`,
+poster:`<rect class="f3" x="6" y="6" width="88" height="108" rx="4"/><rect class="fw" x="12" y="12" width="76" height="96"/><path d="M20 94L44 62L58 74L82 28" stroke="#FF7A1A" stroke-width="5" fill="none" stroke-linejoin="round"/><path d="M20 40L82 90" stroke="#3F6FB5" stroke-width="5" fill="none"/><rect class="fg" x="18" y="18" width="30" height="5"/>`,
+tablet:`<rect class="f3" x="6" y="12" width="88" height="62" rx="7"/><rect class="fs" x="12" y="18" width="76" height="50" rx="3"/><path d="M20 58L38 40L52 50L80 26" stroke="#FF7A1A" stroke-width="4" fill="none"/><path class="f2" d="M38 74h24l10 46H28z"/>`,
+laser:`<rect class="f1" x="4" y="104" width="52" height="16" rx="3"/><rect class="f2" x="10" y="38" width="40" height="68" rx="6"/><circle class="f3" cx="30" cy="62" r="14"/><circle class="fo" cx="30" cy="62" r="7"/><rect x="48" y="60" width="52" height="4" fill="#FF7A1A" opacity=".75"/>`,
+vitrine:`<rect class="f3" x="6" y="20" width="88" height="100" rx="4"/><rect x="10" y="24" width="80" height="92" fill="#9ED8FF" opacity=".12"/><rect class="f2" x="16" y="36" width="16" height="28" rx="3"/><rect class="f2" x="42" y="36" width="16" height="28" rx="3"/><rect class="fo" x="68" y="36" width="16" height="28" rx="3"/><rect class="f2" x="16" y="78" width="16" height="28" rx="3"/><rect class="fs" x="42" y="78" width="16" height="28" rx="3"/><rect class="f2" x="68" y="78" width="16" height="28" rx="3"/>`,
+kiste:`<rect class="fk" x="20" y="10" width="50" height="32" rx="3"/><rect class="fk" x="8" y="42" width="84" height="78" rx="3"/><path d="M8 68H92M8 96H92M50 42V120" stroke="#6E4A22" stroke-width="4" fill="none"/><rect class="fw" x="58" y="50" width="26" height="14" rx="2"/>`,
+regal:`<rect class="fg" x="8" y="6" width="6" height="114"/><rect class="fg" x="86" y="6" width="6" height="114"/><rect class="f2" x="8" y="42" width="84" height="6"/><rect class="f2" x="8" y="80" width="84" height="6"/><rect class="f2" x="8" y="116" width="84" height="4"/><rect class="fk" x="18" y="14" width="26" height="28"/><rect class="fo" x="52" y="22" width="28" height="20"/><rect class="fk" x="16" y="52" width="34" height="28"/><rect class="fs" x="60" y="56" width="20" height="24"/><rect class="fk" x="22" y="90" width="28" height="26"/>`,
+waage:`<rect class="f1" x="42" y="30" width="16" height="84"/><rect class="f1" x="22" y="110" width="56" height="10" rx="3"/><g transform="rotate(-8 50 30)"><rect class="f2" x="6" y="26" width="88" height="8" rx="3"/><path class="fg" d="M12 34L4 62H32zM88 34L68 62H96z"/><rect class="fo" x="4" y="62" width="30" height="6" rx="3"/><rect class="fo" x="66" y="62" width="30" height="6" rx="3"/></g><circle class="fo" cx="50" cy="26" r="8"/>`,
+tresor:`<rect class="f1" x="10" y="30" width="80" height="90" rx="6"/><rect class="f2" x="18" y="38" width="64" height="74" rx="4"/><circle class="fo" cx="50" cy="75" r="14"/><circle class="f3" cx="50" cy="75" r="6"/>`,
+schreibtisch:`<rect class="f1" x="2" y="68" width="96" height="10"/><rect class="f2" x="10" y="78" width="8" height="42"/><rect class="f2" x="82" y="78" width="8" height="42"/><rect class="f3" x="28" y="14" width="44" height="36" rx="3"/><rect class="fs" x="31" y="17" width="38" height="30"/><rect class="fg" x="46" y="50" width="8" height="18"/><rect class="fo" x="76" y="54" width="14" height="14" rx="2"/>`,
+pinnwand:`<rect class="fk" x="6" y="10" width="88" height="66" rx="3"/><rect class="fw" x="14" y="18" width="24" height="20"/><rect class="fy" x="46" y="16" width="24" height="22"/><rect class="fw" x="22" y="46" width="26" height="22"/><rect class="fs" x="58" y="46" width="24" height="20"/><circle class="fo" cx="26" cy="20" r="3"/><circle class="fo" cx="58" cy="18" r="3"/><circle class="fo" cx="34" cy="48" r="3"/><circle class="fo" cx="70" cy="48" r="3"/><rect class="fg" x="20" y="76" width="6" height="44"/><rect class="fg" x="74" y="76" width="6" height="44"/>`,
+werkbank:`<rect class="fg" x="12" y="14" width="4" height="46"/><path class="fy" d="M4 14h20l-4-12h-12z"/><rect class="f1" x="2" y="60" width="96" height="12"/><rect class="f2" x="8" y="72" width="8" height="48"/><rect class="f2" x="84" y="72" width="8" height="48"/><rect class="f3" x="44" y="40" width="38" height="20" rx="3"/><rect class="fo" x="52" y="46" width="8" height="8"/>`,
+werkzeug:`<path d="M32 54V40a4 4 0 0 1 4-4h28a4 4 0 0 1 4 4v14" stroke="#8C3F06" stroke-width="7" fill="none"/><rect class="fo" x="8" y="54" width="84" height="58" rx="6"/><rect class="f3" x="8" y="78" width="84" height="5"/><rect class="fy" x="44" y="72" width="12" height="16" rx="2"/><rect class="f3" x="14" y="112" width="14" height="8"/><rect class="f3" x="72" y="112" width="14" height="8"/>`,
+akte:`<rect class="fs" x="14" y="36" width="64" height="20" transform="rotate(4 50 46)"/><rect class="fy" x="18" y="52" width="70" height="22" transform="rotate(-6 50 60)"/><rect class="fw" x="14" y="70" width="72" height="20"/><rect class="fo" x="10" y="86" width="80" height="32" rx="3"/>`,
+aktenschrank:`<rect class="f1" x="16" y="8" width="68" height="112" rx="4"/><rect class="f2" x="22" y="14" width="56" height="30" rx="2"/><rect class="f2" x="22" y="48" width="56" height="30" rx="2"/><rect class="f2" x="22" y="82" width="56" height="32" rx="2"/><rect class="fo" x="40" y="26" width="20" height="5" rx="2"/><rect class="fo" x="40" y="60" width="20" height="5" rx="2"/><rect class="fo" x="40" y="95" width="20" height="5" rx="2"/>`,
+monitor:`<rect class="f3" x="4" y="14" width="92" height="66" rx="5"/><rect class="fs" x="10" y="20" width="80" height="54" rx="2"/><circle class="f3" cx="42" cy="38" r="8"/><path class="f3" d="M28 72c0-18 28-18 28 0z"/><circle class="fo led" cx="78" cy="30" r="4"/><rect class="fg" x="44" y="80" width="12" height="32"/><rect class="f1" x="24" y="112" width="52" height="8" rx="3"/>`,
+terminal:`<rect class="f3" x="4" y="14" width="92" height="66" rx="5"/><rect x="10" y="20" width="80" height="54" rx="2" fill="#0A1C1A"/><path d="M16 32h40M16 44h56M16 56h28" stroke="#5BE0B8" stroke-width="4" stroke-linecap="round"/><rect class="fg" x="44" y="80" width="12" height="32"/><rect class="f1" x="24" y="112" width="52" height="8" rx="3"/>`,
+server:(()=>{let o='<rect class="f3" x="14" y="4" width="72" height="116" rx="4"/>';for(let k=0;k<6;k++)o+=`<rect class="f1" x="20" y="${10+k*18}" width="60" height="14" rx="2"/><circle cx="28" cy="${17+k*18}" r="3" fill="${k%2?'#5BE0B8':'#FF7A1A'}"/><rect class="f2" x="38" y="${14+k*18}" width="34" height="6" rx="2"/>`;return o})()
+};
+
+function doorSvg(open,have,need,bonus){
+  const unlocked=have>=need;
+  return `<g class="door ${open?'open':''}" id="door" role="button" tabindex="0" aria-label="${bonus?'Ausgangstür':`Ausgangstür mit Zahlenschloss, ${have} von ${need} Codekarten`}">
+  <rect x="780" y="130" width="190" height="322" rx="6" fill="#0B1322"/>
+  <rect x="792" y="146" width="166" height="306" fill="url(#beyond)"/>
+  <g clip-path="url(#dclip)"><g class="panel">
+    <rect x="792" y="146" width="166" height="306" fill="#2A3B5A"/>
+    <rect x="808" y="170" width="134" height="16" rx="3" fill="#0B1322"/>
+    ${bonus?'':`<rect x="814" y="206" width="122" height="40" rx="6" fill="#0B1322"/><text x="875" y="233" text-anchor="middle" font-family="ui-monospace,Consolas,monospace" font-weight="700" font-size="19" fill="${unlocked?'#5BE0B8':'#FF6B88'}">( ? | ? )</text>`}
+    <rect x="792" y="418" width="166" height="34" fill="url(#haz)"/>
+    <rect x="800" y="290" width="10" height="46" rx="4" fill="#9AA9C4"/>
+    <rect x="924" y="262" width="26" height="54" rx="4" fill="#0B1322"/>
+    <circle cx="937" cy="276" r="6" fill="${unlocked?'#5BE0B8':'#FF6B88'}" class="${unlocked?'':'led'}"/>
+    <path d="M930 290h14M930 298h14M930 306h14" stroke="#46679F" stroke-width="4"/>
+  </g></g>
+  <rect x="780" y="104" width="190" height="28" rx="5" fill="#0B1322"/>
+  <text x="875" y="124" class="exit" text-anchor="middle">AUSGANG</text>
+  <text x="875" y="482" class="doorstat" text-anchor="middle">${bonus?'Bonusraum: jederzeit raus':`Codekarten ${have} von ${need}`}</text>
+  </g>`;
+}
+
+function sceneSvg(li,interactive,statsRef){
+  const lv=LEVELS[li],n=lv.puzzles.length,s=n>=7?.95:n>=6?1.1:1.25,GY=452,a=80,b=700,step=n>1?(b-a)/(n-1):0;
+  let o=DEFS+`<rect width="1000" height="390" fill="url(#wall)"/><rect width="1000" height="390" fill="${lv.tint}" opacity=".13"/>`+DECOR[lv.scene]()+FLOOR+LAMPS;
+  let have=0;
+  lv.puzzles.forEach((p,i)=>{
+    const done=!!(statsRef&&statsRef[p.id]&&statsRef[p.id].solved);if(done)have++;
+    const cx=a+i*step;
+    o+=`<g class="hot ${interactive?(done?'done':'todo'):''}" data-i="${i}" ${interactive?`tabindex="0" role="button" aria-label="${p.name}${done?', gelöst':', Rätsel öffnen'}"`:''}>
+    <ellipse cx="${cx}" cy="${GY+3}" rx="${55*s}" ry="8" fill="#000" opacity=".4"/>
+    <g class="prop" transform="translate(${cx-50*s} ${GY-120*s}) scale(${s})">${PROPS[p.prop]}</g>`;
+    if(interactive)o+=`<g transform="translate(${cx} ${GY-120*s-20})"><g class="badge"><circle r="15" class="${done?'bm':'bo'}"/><text class="bt" text-anchor="middle" y="7">${done?'✓':'?'}</text></g></g>
+    <text x="${cx}" y="${GY+30}" class="lab" text-anchor="middle">${p.name}</text>
+    <rect class="hit" x="${cx-60*s}" y="${GY-120*s-38}" width="${120*s}" height="${120*s+78}" fill="transparent"/>`;
+    o+='</g>';
+  });
+  const need=lv.bonus?0:(statsRef?needCount():n-1);
+  if(lv.dark&&interactive)o+=DARK;
+  o+=doorSvg(false,have,need,lv.bonus);
+  return o;
+}
+
+/* ================= SPIELTEILE (Rätseltypen) ================= */
+function grid(x0,x1,y0,y1,cell){
+  const w=(x1-x0)*cell,hh=(y1-y0)*cell,pl=36,pb=30,pt=8,pr=12;
+  const X=x=>(x-x0)*cell,Y=y=>(y1-y)*cell;
+  let g=`<rect x="0" y="0" width="${w}" height="${hh}" fill="#0F1A2E"/>`;
+  for(let x=x0;x<=x1;x++)g+=`<line x1="${X(x)}" y1="0" x2="${X(x)}" y2="${hh}" class="gl${x===0?' ax':''}"/><text x="${X(x)}" y="${hh+20}" class="gt" text-anchor="middle">${mi(x)}</text>`;
+  for(let y=y0;y<=y1;y++)g+=`<line x1="0" y1="${Y(y)}" x2="${w}" y2="${Y(y)}" class="gl${y===0?' ax':''}"/><text x="-9" y="${Y(y)+5}" class="gt" text-anchor="end">${mi(y)}</text>`;
+  return {vb:`${-pl} ${-pt} ${w+pl+pr} ${hh+pt+pb}`,g,X,Y,w,hh,cell,x0,x1,y0,y1};
+}
+const lineEl=(gr,m,bb,col,clip,w=4)=>`<line x1="${gr.X(gr.x0)}" y1="${gr.Y(m*gr.x0+bb)}" x2="${gr.X(gr.x1)}" y2="${gr.Y(m*gr.x1+bb)}" stroke="${col}" stroke-width="${w}" stroke-linecap="round" clip-path="url(#${clip})"/>`;
+
+/* Jeder Rätselteil liefert beim Prüfen {ok, msg, sign}.
+   msg ist eine Diagnose für typische Fehler, sign markiert einen Vorzeichenfehler. */
+function mkInput(pt){
+  const rows=pt.fields.map(f=>{
+    const inp=h('input',{type:'text',inputmode:'text',autocomplete:'off',autocapitalize:'off',spellcheck:'false','aria-label':f.l+(f.u?' '+f.u:'')});
+    const row=h('label',{class:'frow'},h('span',{class:'flab'},f.l),inp,f.u?h('span',{class:'fu'},f.u):null);
+    inp.addEventListener('input',()=>row.classList.remove('bad','good'));
+    return {f,inp,row};
+  });
+  const node=h('div',{class:'part'},pt.q?h('p',{class:'pq'},pt.q):null,h('div',{class:'fields'},rows.map(r=>r.row)));
+  const xy=rows.length===2&&rows[0].f.l==='x =';
+  const nm=f=>f.n||f.l.replace(/[=:]/g,'').trim();
+  const same=(v,w)=>Math.abs(v-w)<1e-9;
+  return {node,check(){
+    const raw=rows.map(r=>r.inp.value.trim()),got=raw.map(num),A=rows.map(r=>r.f.a);
+    const good=rows.map((r,k)=>same(got[k],A[k])&&!(r.f.frac&&!raw[k].includes('/')));
+    rows.forEach((r,k)=>{r.row.classList.toggle('good',good[k]);r.row.classList.toggle('bad',!good[k])});
+    if(good.every(Boolean))return{ok:true};
+    if(raw.some(v=>v===''))return{ok:false,incomplete:true,msg:'Fülle zuerst alle Felder aus.'};
+    if(got.some(Number.isNaN))return{ok:false,incomplete:true,msg:'Das versteht ARGUS nicht. Gib eine Zahl ein, zum Beispiel −3, 2,5 oder 3/4.'};
+    if(rows.some((r,k)=>r.f.frac&&!good[k]&&same(got[k],A[k])))return{ok:false,msg:'Der Wert stimmt, aber ARGUS will einen Bruch. Schreib ihn zum Beispiel als 5/8.'};
+    if(pt.trap&&pt.trap.vals.every((v,k)=>same(got[k],v)))return{ok:false,msg:pt.trap.msg};
+    if(rows.length===2&&!same(A[0],A[1])&&same(got[0],A[1])&&same(got[1],A[0]))
+      return{ok:false,msg:xy?'x und y vertauscht? Im Paar (x | y) steht x immer vorne.':'Die beiden Werte sind vertauscht. Lies nochmal genau, wonach gefragt ist.'};
+    const sk=rows.findIndex((r,k)=>!good[k]&&A[k]!==0&&same(got[k],-A[k]));
+    if(sk>=0)return{ok:false,sign:true,msg:`ARGUS: VORZEICHENFEHLER bei ${nm(rows[sk].f)}. Der Betrag stimmt, das Vorzeichen nicht. Wo kippt es in deiner Rechnung?`};
+    if(good.some(Boolean)){
+      if(xy)return{ok:false,msg:good[0]?'x stimmt schon! Prüfe y: Setze x nochmal in eine der Gleichungen ein.':'y stimmt, x noch nicht. Prüfe deinen Rechenweg für x.'};
+      return{ok:false,msg:`${rows.filter((r,k)=>good[k]).map(r=>nm(r.f)).join(' und ')} stimmt schon. Der Rest noch nicht.`};
+    }
+    return{ok:false};
+  }};
+}
+function mkChoice(pt){
+  let order=pt.o.map((t,i)=>({t,i}));if(!pt.fixed)order=shuffle(order);
+  let sel=null;const btns=[];
+  order.forEach(o=>{
+    const bt=h('button',{class:'opt',type:'button','aria-pressed':'false'},o.t);
+    bt.addEventListener('click',()=>{sel=o.i;btns.forEach(x=>{x.classList.remove('bad');x.setAttribute('aria-pressed',x===bt?'true':'false')})});
+    btns.push(bt);
+  });
+  const outs=outList(pt);order.forEach((o,j)=>{if(outs.includes(o.i))outBtn(btns[j])});
+  const node=h('div',{class:'part'},pt.q?h('p',{class:'pq'},pt.q):null,h('div',{class:'opts'},btns));
+  return {node,check(){
+    if(sel===null)return{ok:false,incomplete:true,msg:'Wähle zuerst eine Antwort aus.'};
+    if(sel===pt.c)return{ok:true};
+    const r={ok:false,pick:true,msg:(pt.why&&pt.why[sel])||null,sign:!!(pt.sign&&pt.sign.includes(sel))};
+    outBtn(btns[order.findIndex(o=>o.i===sel)]);outs.push(sel);sel=null;
+    return r;
+  }};
+}
+function mkSort(pt){
+  const n=pt.items.length;let pool=shuffleNot(pt.items.map((t,i)=>({t,i})));let seq=[];
+  const poolBox=h('div',{class:'chips'}),seqBox=h('ol',{class:'seq'});
+  function draw(){
+    poolBox.replaceChildren(...pool.map(o=>h('button',{class:'chip',type:'button',onclick:()=>{pool=pool.filter(x=>x!==o);seq.push(o);draw()}},o.t)));
+    seqBox.replaceChildren(...seq.map(o=>h('li',{},h('button',{class:'chip',type:'button','aria-label':'Zurücklegen: '+o.t,onclick:()=>{seq=seq.filter(x=>x!==o);pool.push(o);draw()}},o.t))));
+  }
+  draw();
+  const node=h('div',{class:'part'},pt.q?h('p',{class:'pq'},pt.q):null,poolBox,seqBox);
+  return {node,check(){
+    [...seqBox.children].forEach((li,k)=>li.classList.toggle('bad',seq[k].i!==k));
+    if(seq.length<n)return{ok:false,incomplete:true,msg:'Lege zuerst alle Schritte in die Reihenfolge.'};
+    const k=seq.filter((o,i)=>o.i===i).length;
+    return k===n?{ok:true}:{ok:false,msg:`${k} von ${n} Schritten stehen schon an der richtigen Stelle. Die rot markierten noch nicht.`};
+  }};
+}
+/* Diagnose für angetippte Punkte im Koordinatensystem */
+function pickDiag(pick,a,lines){
+  if(!pick)return{ok:false,incomplete:true,msg:'Tippe zuerst einen Punkt im Koordinatensystem an.'};
+  if(pick[0]===a[0]&&pick[1]===a[1])return{ok:true};
+  if(pick[0]===a[1]&&pick[1]===a[0])return{ok:false,msg:'x und y vertauscht? Erst nach rechts gehen (x), dann nach oben (y).'};
+  const on=lines.map(l=>l.m*pick[0]+l.b===pick[1]);
+  if(on[0]!==on[1])return{ok:false,msg:`Dieser Punkt liegt auf Gerade ${on[0]?'I':'II'}, aber nicht auf Gerade ${on[0]?'II':'I'}. Der Schnittpunkt liegt auf beiden.`};
+  return{ok:false,msg:'Dieser Punkt liegt auf keiner der beiden Geraden.'};
+}
+function mkGraph(pt){
+  const gr=grid(pt.x[0],pt.x[1],pt.y[0],pt.y[1],44),clip='c'+(++uid);let pick=null;
+  const wrap=h('div',{class:'gwrap'});
+  wrap.innerHTML=`<svg class="gsvg" viewBox="${gr.vb}" role="img" aria-label="Koordinatensystem mit zwei Geraden. Tippe auf den Schnittpunkt."><defs><clipPath id="${clip}"><rect width="${gr.w}" height="${gr.hh}"/></clipPath></defs>${gr.g}${pt.lines.map(l=>lineEl(gr,l.m,l.b,l.col,clip)).join('')}<g class="mk" hidden><circle r="11" fill="none" stroke="#fff" stroke-width="3"/><circle r="4" fill="#fff"/></g></svg>`;
+  const svg=wrap.firstChild,mk=svg.querySelector('.mk');
+  const read=h('p',{class:'pick'},'Dein Punkt: noch keiner');
+  svg.addEventListener('pointerdown',ev=>{
+    const p=svg.createSVGPoint();p.x=ev.clientX;p.y=ev.clientY;
+    const q=p.matrixTransform(svg.getScreenCTM().inverse());
+    const gx=Math.max(gr.x0,Math.min(gr.x1,Math.round(q.x/gr.cell)+gr.x0));
+    const gy=Math.max(gr.y0,Math.min(gr.y1,gr.y1-Math.round(q.y/gr.cell)));
+    pick=[gx,gy];mk.removeAttribute('hidden');mk.setAttribute('transform',`translate(${gr.X(gx)} ${gr.Y(gy)})`);
+    read.textContent=`Dein Punkt: (${mi(gx)} | ${mi(gy)})`;
+  });
+  const legend=h('div',{class:'legend'},pt.lines.map(l=>{const sp=h('span',{class:'lg'},l.name);sp.style.setProperty('--c',l.col);return sp}));
+  const node=h('div',{class:'part'},legend,wrap,read);
+  return {node,check(){return pickDiag(pick,pt.a,pt.lines)}};
+}
+function mkLaser(pt){
+  const gr=grid(pt.x[0],pt.x[1],pt.y[0],pt.y[1],34),clip='c'+(++uid);let m=1,bb=0;
+  const wrap=h('div',{class:'gwrap'});
+  wrap.innerHTML=`<svg class="gsvg" viewBox="${gr.vb}" role="img" aria-label="Koordinatensystem mit Sensoren und einem Laser"><defs><clipPath id="${clip}"><rect width="${gr.w}" height="${gr.hh}"/></clipPath></defs>${gr.g}<g class="beam"></g>${pt.targets.map((t,i)=>`<circle class="tg" data-i="${i}" cx="${gr.X(t[0])}" cy="${gr.Y(t[1])}" r="10" fill="#111B2E" stroke="#FF7A1A" stroke-width="4"/>`).join('')}</svg>`;
+  const svg=wrap.firstChild,beam=svg.querySelector('.beam'),tg=[...svg.querySelectorAll('.tg')];
+  const eq=h('p',{class:'eq'},'');
+  const mOut=h('output',{},''),bOut=h('output',{},'');
+  const mIn=h('input',{type:'range',min:-4,max:5,step:.5,value:m,'aria-label':'Steigung m'}),bIn=h('input',{type:'range',min:-6,max:12,step:1,value:bb,'aria-label':'y-Achsenabschnitt b'});
+  const hits=()=>pt.targets.map(t=>Math.abs(m*t[0]+bb-t[1])<1e-6);
+  function upd(){
+    m=Number(mIn.value);bb=Number(bIn.value);
+    beam.innerHTML=lineEl(gr,m,bb,'#FF7A1A',clip,5);
+    const hh=hits();tg.forEach((c,i)=>{c.setAttribute('fill',hh[i]?'#5BE0B8':'#111B2E');c.setAttribute('stroke',hh[i]?'#5BE0B8':'#FF7A1A')});
+    mOut.textContent=mi(String(m).replace('.',','));bOut.textContent=mi(bb);
+    eq.textContent=`y = ${mi(String(m).replace('.',','))}x ${bb<0?'−':'+'} ${Math.abs(bb)}`;
+  }
+  mIn.addEventListener('input',upd);bIn.addEventListener('input',upd);upd();
+  const node=h('div',{class:'part'},wrap,eq,
+    h('div',{class:'sl'},h('span',{},'Steigung m'),mIn,mOut),
+    h('div',{class:'sl'},h('span',{},'Achsenabschnitt b'),bIn,bOut));
+  return {node,check(){
+    const hh=hits();
+    if(hh.every(Boolean))return{ok:true};
+    if(m===-pt.m&&bb===pt.b)return{ok:false,sign:true,msg:'ARGUS: VORZEICHENFEHLER bei m. Der Laser kippt in die falsche Richtung.'};
+    if(hh.some(Boolean))return{ok:false,msg:'Ein Sensor ist schon getroffen. Dreh jetzt an der anderen Einstellung.'};
+    return{ok:false,msg:'Der Laser verfehlt beide Sensoren. Fang mit b an: Wo trifft der Laser die y-Achse?'};
+  }};
+}
+function mkDraw(pt){
+  const gr=grid(pt.x[0],pt.x[1],pt.y[0],pt.y[1],36),clip='c'+(++uid);let pick=null;
+  const cfg=pt.lines.map((l,k)=>({...l,cm:k?-2:1,cb:k?2:0}));
+  const wrap=h('div',{class:'gwrap'});
+  wrap.innerHTML=`<svg class="gsvg" viewBox="${gr.vb}" role="img" aria-label="Koordinatensystem mit zwei Lasern. Stelle sie ein und tippe auf den Schnittpunkt."><defs><clipPath id="${clip}"><rect width="${gr.w}" height="${gr.hh}"/></clipPath></defs>${gr.g}<g class="beams"></g><g class="mk" hidden><circle r="11" fill="none" stroke="#fff" stroke-width="3"/><circle r="4" fill="#fff"/></g></svg>`;
+  const svg=wrap.firstChild,beams=svg.querySelector('.beams'),mk=svg.querySelector('.mk');
+  const paint=()=>{beams.innerHTML=cfg.map(c=>lineEl(gr,c.cm,c.cb,c.col,clip,4)).join('')};
+  const read=h('p',{class:'pick'},'Dein Punkt: noch keiner');
+  svg.addEventListener('pointerdown',ev=>{
+    const p=svg.createSVGPoint();p.x=ev.clientX;p.y=ev.clientY;
+    const q=p.matrixTransform(svg.getScreenCTM().inverse());
+    const gx=Math.max(gr.x0,Math.min(gr.x1,Math.round(q.x/gr.cell)+gr.x0));
+    const gy=Math.max(gr.y0,Math.min(gr.y1,gr.y1-Math.round(q.y/gr.cell)));
+    pick=[gx,gy];mk.removeAttribute('hidden');mk.setAttribute('transform',`translate(${gr.X(gx)} ${gr.Y(gy)})`);
+    read.textContent=`Dein Punkt: (${mi(gx)} | ${mi(gy)})`;
+  });
+  const ctrls=cfg.map(c=>{
+    const mOut=h('output',{}),bOut=h('output',{}),eq=h('p',{class:'eq'});eq.style.color=c.col;
+    const mIn=h('input',{type:'range',min:-4,max:5,step:.5,value:c.cm,'aria-label':'Steigung m, '+c.tag}),bIn=h('input',{type:'range',min:-6,max:12,step:1,value:c.cb,'aria-label':'y-Achsenabschnitt b, '+c.tag});
+    const upd=()=>{c.cm=Number(mIn.value);c.cb=Number(bIn.value);mOut.textContent=mi(String(c.cm).replace('.',','));bOut.textContent=mi(c.cb);
+      eq.textContent=`${c.tag}: y = ${mi(String(c.cm).replace('.',','))}x ${c.cb<0?'−':'+'} ${Math.abs(c.cb)}`;paint()};
+    mIn.addEventListener('input',upd);bIn.addEventListener('input',upd);upd();
+    return h('div',{},eq,h('div',{class:'sl'},h('span',{},'Steigung m'),mIn,mOut),h('div',{class:'sl'},h('span',{},'Achsenabschnitt b'),bIn,bOut));
+  });
+  const node=h('div',{class:'part'},wrap,read,ctrls);
+  return {node,check(){
+    for(let k=0;k<cfg.length;k++){
+      const c=cfg[k],L=pt.lines[k];
+      if(c.cm===L.m&&c.cb===L.b)continue;
+      if(c.cm===-L.m&&c.cb===L.b)return{ok:false,sign:true,msg:`ARGUS: VORZEICHENFEHLER bei ${c.tag}. Die Steigung zeigt in die falsche Richtung.`};
+      return{ok:false,msg:`${c.tag} steht noch nicht richtig. Prüfe Steigung und Achsenabschnitt.`};
+    }
+    if(!pick)return{ok:false,incomplete:true,msg:'Beide Laser stimmen. Tippe jetzt auf den Schnittpunkt.'};
+    return pickDiag(pick,pt.a,pt.lines);
+  }};
+}
+/* Fehler finden: Rechenweg Zeile für Zeile, eine Zeile ist der erste Fehler */
+function mkSpot(pt){
+  let sel=null;const btns=[];
+  pt.lines.forEach((t,i)=>{
+    const bt=h('button',{class:'opt spot',type:'button','aria-pressed':'false'},h('span',{class:'ln'},String(i+1)),h('span',{},t));
+    bt.addEventListener('click',()=>{sel=i;btns.forEach(x=>{x.classList.remove('bad');x.setAttribute('aria-pressed',x===bt?'true':'false')})});
+    btns.push(bt);
+  });
+  const outs=outList(pt);outs.forEach(i=>outBtn(btns[i]));
+  const node=h('div',{class:'part'},pt.q?h('p',{class:'pq'},pt.q):null,h('div',{class:'opts'},btns));
+  return {node,check(){
+    if(sel===null)return{ok:false,incomplete:true,msg:'Tippe zuerst eine Zeile an.'};
+    if(sel===pt.err)return{ok:true};
+    const before=sel<pt.err;outBtn(btns[sel]);outs.push(sel);sel=null;
+    return{ok:false,pick:true,msg:before?'Diese Zeile stimmt noch. Rechne sie selbst nach und geh weiter nach unten.':'Diese Zeile ist falsch, aber nur als Folgefehler. Der eigentliche Fehler passiert schon weiter oben.'};
+  }};
+}
+function mkPart(pt){return ({input:mkInput,choice:mkChoice,sort:mkSort,graph:mkGraph,laser:mkLaser,draw:mkDraw,spot:mkSpot,dials:mkDials,scale:mkScale,probe:mkProbe})[pt.t](pt)}
+
+/* ================= FIGUREN ================= */
+/* Porträts als einfache SVG-Formen ohne IDs, damit sie mehrfach auf einer Seite stehen können. */
+const SHOULDERS=c=>`<path d="M6 100C8 78 27 67 50 67s42 11 44 33z" fill="${c}"/>`;
+const PORTRAIT={
+kurz:SHOULDERS('#3F6FB5')+`<path d="M37 67l13 15 13-15" fill="#E9E2D2"/><path d="M50 82v18" stroke="#2C4F86" stroke-width="2"/><rect x="43" y="55" width="14" height="14" fill="#E2B08C"/><ellipse cx="31" cy="44" rx="4" ry="6" fill="#E2B08C"/><ellipse cx="69" cy="44" rx="4" ry="6" fill="#E2B08C"/><ellipse cx="50" cy="41" rx="19" ry="22" fill="#E8B896"/><path d="M32 42c-1-12 2-18 7-21M68 42c1-12-2-18-7-21" stroke="#B9BEC9" stroke-width="7" fill="none" stroke-linecap="round"/><path d="M38 34h9M53 34h9" stroke="#8E949E" stroke-width="3" stroke-linecap="round"/><circle cx="43" cy="40" r="2.3" fill="#1B1B1B"/><circle cx="57" cy="40" r="2.3" fill="#1B1B1B"/><path d="M49 43l-2 6h5" stroke="#C48A66" stroke-width="2" fill="none"/><path d="M39 54c5-5 9-4 11-1 2-3 6-4 11 1-5 3-8 2-11 0-3 2-6 3-11 0z" fill="#C9CDD5"/><circle cx="74" cy="87" r="5" fill="none" stroke="#E8C25A" stroke-width="2.5"/><path d="M74 92v5" stroke="#E8C25A" stroke-width="2.5"/>`,
+tan:`<path d="M27 50c-3-22 8-34 23-34s26 12 23 34l1 14H26z" fill="#141414"/>`+SHOULDERS('#1F2A44')+`<path d="M39 67l11 19 11-19z" fill="#FF7A1A"/><path d="M36 69l14 22M64 69L50 91" stroke="#2C3B5E" stroke-width="3"/><rect x="43" y="55" width="14" height="14" fill="#CF9A72"/><ellipse cx="50" cy="42" rx="17" ry="21" fill="#D9A57B"/><path d="M32 41c0-15 8-23 18-23s18 8 18 23c-7-7-15-10-23-9-6 1-9 4-13 9z" fill="#141414"/><rect x="37" y="37" width="11" height="8" rx="3" fill="none" stroke="#0B1322" stroke-width="2"/><rect x="52" y="37" width="11" height="8" rx="3" fill="none" stroke="#0B1322" stroke-width="2"/><path d="M48 41h4" stroke="#0B1322" stroke-width="2"/><circle cx="42.5" cy="41" r="1.8" fill="#1B1B1B"/><circle cx="57.5" cy="41" r="1.8" fill="#1B1B1B"/><path d="M38 33l8-1M54 32l8 1" stroke="#141414" stroke-width="2.5" stroke-linecap="round"/><path d="M44 54q6 4 12 0" stroke="#8A3B3B" stroke-width="2.2" fill="none" stroke-linecap="round"/><circle cx="33" cy="52" r="2" fill="#5BE0B8"/><circle cx="67" cy="52" r="2" fill="#5BE0B8"/>`,
+piet:SHOULDERS('#2E9C83')+`<path d="M29 72c5 9 13 13 21 13s16-4 21-13" stroke="#23806B" stroke-width="6" fill="none"/><path d="M45 85v11M55 85v11" stroke="#E9E2D2" stroke-width="2"/><rect x="43" y="55" width="14" height="14" fill="#7E4F33"/><ellipse cx="31" cy="44" rx="4" ry="6" fill="#7E4F33"/><ellipse cx="69" cy="44" rx="4" ry="6" fill="#7E4F33"/><ellipse cx="50" cy="42" rx="18" ry="21" fill="#8D5A3B"/>`
+  +[[36,27],[44,21],[52,19],[60,22],[66,29],[32,35],[68,36],[40,24],[57,25]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="7" fill="#1E130C"/>`).join('')
+  +`<path d="M39 35l7-1M54 34l7 1" stroke="#1E130C" stroke-width="2.5" stroke-linecap="round"/><circle cx="43" cy="41" r="2.3" fill="#140C07"/><circle cx="57" cy="41" r="2.3" fill="#140C07"/><path d="M43 51q7 7 14 0z" fill="#F4EFE6" stroke="#4A2A1A" stroke-width="1.5"/><path d="M31 68c4 8 11 11 19 11s15-3 19-11" stroke="#FF7A1A" stroke-width="4" fill="none"/><rect x="25" y="62" width="9" height="13" rx="3" fill="#FF7A1A"/><rect x="66" y="62" width="9" height="13" rx="3" fill="#FF7A1A"/>`
+};
+const PEOPLE={
+  kurz:{name:'Hausmeister Kurz',short:'Kurz',role:'Hausmeister, 58 Jahre',quote:'„Früher hatten Schlüssel keine Updates.“',
+    about:'Seit 30 Jahren bei TechNova. Hat für jeden Raum einen Schlüssel und kommt als Einziger an den Hauptschalter. Traut Computern nicht über den Weg.',
+    notes:[['Beweis 5b','Der Hauptschalter wurde per Software ausgelöst, nicht von Hand.'],['Beweis 6','Kameras: Kurz war nie im Serverraum.']],cleared:'Beweis 6'},
+  tan:{name:'Frau Tan',short:'Tan',role:'Filialleiterin, 41 Jahre',quote:'„Ein Fehler ist okay. Kein Test ist nicht okay.“',
+    about:'Plant alles und rechnet alles nach. Kennt alle Passwörter von ARGUS.',
+    notes:[['Beweis 4','Ihre Notiz: Sie wusste, dass Piets Formel um 19:58 automatisch startet.'],['Beweis 6','Kameras: Frau Tan war nie im Serverraum.']],cleared:'Beweis 6'},
+  piet:{name:'Piet',short:'Piet',role:'Azubi Fachinformatik, 19 Jahre',quote:'„Probe? Die Formel stimmt doch!“',
+    about:'Programmiert die neue Preisformel für ARGUS. Schnell und klug, aber beim Umstellen manchmal schludrig.',
+    notes:[['Beweis 3','Sein Zettel im Lager: ein Vorzeichenfehler beim Umstellen.'],['Beweis 5','Der Ausdruck seiner Formel: Eine Zeile rechnet mit dem falschen Vorzeichen.'],['Beweis 6','Kameras: Auch Piet war nicht im Serverraum.']],cleared:null}
+};
+const CAST=['kurz','tan','piet'];
+const ptEl=(k,cls='')=>h('span',{class:'ptw '+cls,html:`<svg viewBox="0 0 100 100" aria-hidden="true">${PORTRAIT[k]}</svg>`});
+const hasClue=p=>!!(S&&S.clues&&S.clues.some(c=>c.startsWith(p+':')));
+function personCard(k,full){
+  const P=PEOPLE[k];
+  if(!full)return h('div',{class:'pcard mini'},ptEl(k),h('div',{},h('b',{},P.name),h('small',{},P.role)));
+  const notes=P.notes.filter(([c])=>hasClue(c)).map(([,t])=>h('li',{},t));
+  const st=k==='piet'?(hasClue('Beweis 6')?['tagmid','war nicht im Serverraum']:['tagno','verdächtig'])
+    :(hasClue(P.cleared)?['tagok','Alibi bestätigt']:['tagno','verdächtig']);
+  return h('div',{class:'pcard'},ptEl(k),h('div',{},h('b',{},P.name),h('small',{},P.role),h('p',{class:'pq2'},P.quote),h('p',{},P.about),
+    notes.length?h('ul',{},notes):null,h('span',{class:st[0]},st[1])));
+}
+const whoChip=k=>h('span',{class:'who'},ptEl(k,'sm'),PEOPLE[k].name);
+
+/* ================= GEGENSTÄNDE ================= */
+/* Jeder Gegenstand liegt in einem Raum und wird in einem späteren Raum gebraucht.
+   Hat die Lehrkraft den Fundraum abgewählt, liegt er beim Betreten des Zielraums einfach bereit. */
+const ICON={
+  lamp:`<svg viewBox="0 0 32 32" aria-hidden="true"><rect x="3" y="12" width="17" height="9" rx="2" fill="#46679F"/><path d="M20 10l8-4v20l-8-4z" fill="#9AA9C4"/><rect x="7" y="14" width="4" height="5" rx="1" fill="#FF7A1A"/></svg>`,
+  uv:`<svg viewBox="0 0 32 32" aria-hidden="true"><rect x="3" y="12" width="15" height="9" rx="2" fill="#2C3B5E"/><path d="M18 10l7-3v19l-7-3z" fill="#B48CFF"/><path d="M27 9l3-2M28 16h3M27 23l3 2" stroke="#B48CFF" stroke-width="2" stroke-linecap="round"/></svg>`,
+  card:`<svg viewBox="0 0 32 32" aria-hidden="true"><rect x="3" y="7" width="26" height="18" rx="3" fill="#E9E2D2"/><rect x="3" y="11" width="26" height="4" fill="#111B2E"/><rect x="6" y="18" width="8" height="4" rx="1" fill="#E8C25A"/><circle cx="23" cy="20" r="2.5" fill="#FF7A1A"/></svg>`
+};
+const ITEMS={
+  lamp:{name:'Taschenlampe',from:'1.1',use:'lager',found:'Unter Kasse 3 klemmt eine Taschenlampe. Eingesteckt!',
+    desc:'Macht dunkle Räume hell. Antippen zum Ein- und Ausschalten.',auto:'Im Dunkeln ertastest du eine Taschenlampe. Sie liegt jetzt unten in deinem Inventar.'},
+  uv:{name:'UV-Lampe',from:'3.2',use:'buero',found:'Hinter Regal C liegt eine UV-Lampe. Damit sieht man Geheimtinte.',
+    desc:'Macht unsichtbare Tinte sichtbar. Ein Rätsel braucht sie.',auto:'Auf dem Boden liegt eine UV-Lampe. Eingesteckt!'},
+  card:{name:'Zugangskarte',from:'5.2',use:'server',found:'In der Werkzeugkiste steckt Piets Zugangskarte. Wofür die wohl gut ist?',
+    desc:'Piets Zugangskarte. Öffnet gesperrte Geräte.',auto:'An der Tür hängt Piets Zugangskarte. Eingesteckt!'}
+};
+const itemFrom=id=>Object.keys(ITEMS).find(k=>ITEMS[k].from===id);
+const hasItem=k=>S.inv.includes(k);
+function grant(k){if(hasItem(k))return false;S.inv.push(k);renderInv();return true}
+function renderInv(){
+  const box=$('#inv');
+  box.replaceChildren(...S.inv.map(k=>{
+    const lit=k==='lamp'&&lvl().dark;
+    return h('button',{class:'item'+(lit&&S.light?' on':''),type:'button','aria-pressed':lit?String(!!S.light):false,onclick:()=>useItem(k)},h('span',{class:'ico',html:ICON[k]}),ITEMS[k].name);
+  }));
+  box.hidden=!S.inv.length;
+}
+function useItem(k){
+  if(k==='lamp'&&lvl().dark){
+    S.light=!S.light;SFX.click();paintDark();renderInv();save();
+    say(S.light?'Taschenlampe an. Leuchte den Raum ab.':'Taschenlampe aus. Stockdunkel.');return;
+  }
+  say(`${ITEMS[k].name}: ${ITEMS[k].desc}`);
+}
+/* Dunkler Raum: Maske mit einem Lichtkegel, der dem Finger oder der Maus folgt */
+const DARK=`<defs><radialGradient id="spotg"><stop offset=".5" stop-color="#000"/><stop offset="1" stop-color="#fff"/></radialGradient>
+<mask id="spotm" maskUnits="userSpaceOnUse" x="0" y="0" width="1000" height="520"><rect width="1000" height="520" fill="#fff"/><circle id="spotc" cx="400" cy="380" r="0" fill="url(#spotg)"/></mask></defs>
+<rect width="1000" height="520" fill="#01040A" opacity=".95" mask="url(#spotm)" pointer-events="none"/>`;
+function paintDark(){const c=document.getElementById('spotc');if(c)c.setAttribute('r',S&&S.light?180:0)}
+function moveSpot(clientX,clientY){
+  const c=document.getElementById('spotc');if(!c||!S.light)return;
+  const svg=$('#scene'),p=svg.createSVGPoint();p.x=clientX;p.y=clientY;
+  const q=p.matrixTransform(svg.getScreenCTM().inverse());c.setAttribute('cx',q.x);c.setAttribute('cy',q.y);
+}
+$('#scene').addEventListener('pointermove',e=>moveSpot(e.clientX,e.clientY));
+$('#scene').addEventListener('pointerdown',e=>moveSpot(e.clientX,e.clientY));
+$('#scene').addEventListener('focusin',e=>{const t=e.target.closest&&e.target.closest('.hot');if(t){const r=t.getBoundingClientRect();moveSpot(r.left+r.width/2,r.top+r.height/2)}});
+
+/* ================= NEUE RÄTSELTYPEN ================= */
+/* Zahlenschloss mit zwei Drehrädern als Antwort auf (x | y) */
+function mkDials(pt){
+  const dx=mkDial('x'),dy=mkDial('y');
+  const lock=h('div',{class:'lock'},h('span',{class:'br'},'('),dx.node,h('span',{class:'br'},'|'),dy.node,h('span',{class:'br'},')'));
+  const node=h('div',{class:'part'},pt.q?h('p',{class:'pq'},pt.q):null,lock);
+  return{node,check(){
+    const g=[dx.get(),dy.get()],A=pt.a,ok=g.map((v,i)=>v===A[i]);
+    if(ok[0]&&ok[1]){lock.classList.add('open');return{ok:true}}
+    lock.classList.remove('shake');void lock.offsetWidth;lock.classList.add('shake');
+    if(A[0]!==A[1]&&g[0]===A[1]&&g[1]===A[0])return{ok:false,msg:'x und y vertauscht? Im Paar (x | y) steht x immer vorne.'};
+    const si=[0,1].find(i=>!ok[i]&&A[i]!==0&&g[i]===-A[i]);
+    if(si!=null)return{ok:false,sign:true,msg:`ARGUS: VORZEICHENFEHLER bei ${si?'y':'x'}. Der Betrag stimmt, das Vorzeichen nicht. Wo kippt es in deiner Rechnung?`};
+    if(ok[0])return{ok:false,msg:'x stimmt schon! Prüfe y: Setze x nochmal in eine der Gleichungen ein.'};
+    if(ok[1])return{ok:false,msg:'y stimmt, x noch nicht. Prüfe deinen Rechenweg für x.'};
+    return{ok:false};
+  }};
+}
+/* Balkenwaage: a·x + b = c·x + d. Antippen nimmt einen Gegenstand von einer Seite.
+   Die Waage kippt, sobald beide Seiten nicht mehr gleich schwer sind (gerechnet mit dem echten x). */
+function mkScale(pt){
+  let L,Rt,ang=0,anim=0,refocus=null;
+  const reset=()=>{L={x:pt.a,w:pt.b};Rt={x:pt.c,w:pt.d}};reset();
+  const wrap=h('div',{class:'gwrap scale'});
+  const status=h('p',{class:'eq'}),note=h('p',{class:'pick'});
+  const divBtn=h('button',{class:'btn small',type:'button',hidden:true});
+  const resetBtn=h('button',{class:'btn small ghost',type:'button',onclick:()=>{reset();SFX.click();update()}},'Neu aufbauen');
+  const wt=s=>s.x*pt.x+s.w,bal=()=>wt(L)===wt(Rt);
+  const done=()=>bal()&&((L.x===1&&L.w===0&&Rt.x===0)||(Rt.x===1&&Rt.w===0&&L.x===0));
+  const divisor=()=>{
+    if(L.w===0&&Rt.x===0&&L.x>1&&Rt.w%L.x===0)return L.x;
+    if(Rt.w===0&&L.x===0&&Rt.x>1&&L.w%Rt.x===0)return Rt.x;
+    return 0;
+  };
+  function pan(side,s,ex,ey){
+    const py=ey+150,where=side==='L'?'links':'rechts';
+    let o=`<path d="M${ex} ${ey}L${ex-78} ${py}M${ex} ${ey}L${ex+78} ${py}" stroke="#6C7C99" stroke-width="2"/><rect x="${ex-86}" y="${py}" width="172" height="8" rx="4" fill="#9AA9C4"/>`;
+    for(let i=0;i<s.x;i++){const x0=ex-s.x*18+i*36+2;
+      o+=`<g class="sitem" data-side="${side}" data-k="x" tabindex="0" role="button" aria-label="Ein x ${where} wegnehmen"><rect x="${x0}" y="${py-34}" width="32" height="32" rx="5" fill="#FF7A1A"/><text x="${x0+16}" y="${py-11}" text-anchor="middle" class="sx">x</text></g>`}
+    for(let i=0;i<s.w;i++){const row=Math.floor(i/7),col=i%7,inRow=Math.min(7,s.w-row*7),cx=ex-inRow*12+col*24+12,cy=py-(s.x?48:13)-row*24;
+      o+=`<g class="sitem" data-side="${side}" data-k="w" tabindex="0" role="button" aria-label="Ein Gewicht ${where} wegnehmen"><circle cx="${cx}" cy="${cy}" r="11" fill="#5BE0B8"/><text x="${cx}" y="${cy+5}" text-anchor="middle" class="sw">1</text></g>`}
+    return o;
+  }
+  function draw(a){
+    const t=a*Math.PI/180,r=180,lx=280-r*Math.cos(t),ly=60+r*Math.sin(t),rx=280+r*Math.cos(t),ry=60-r*Math.sin(t);
+    wrap.innerHTML=`<svg class="gsvg" viewBox="0 0 560 300" role="group" aria-label="Balkenwaage. Links ${lin([L.x,'x'],[L.w,''])}, rechts ${lin([Rt.x,'x'],[Rt.w,''])}."><path d="M280 60L252 288h56z" fill="#2C426A"/><rect x="210" y="286" width="140" height="10" rx="4" fill="#46679F"/><line x1="${lx}" y1="${ly}" x2="${rx}" y2="${ry}" stroke="#E9E2D2" stroke-width="8" stroke-linecap="round"/><circle cx="280" cy="60" r="9" fill="#FF7A1A"/>${pan('L',L,lx,ly)}${pan('R',Rt,rx,ry)}</svg>`;
+  }
+  function update(){
+    const d=wt(L)-wt(Rt),tg=Math.max(-14,Math.min(14,d*3)),from=ang,t0=performance.now();
+    cancelAnimationFrame(anim);
+    const step=now=>{const k=reduce?1:Math.min(1,(now-t0)/260);ang=from+(tg-from)*k;draw(ang);
+      if(k<1)anim=requestAnimationFrame(step);
+      else if(refocus){const el=wrap.querySelector(`.sitem[data-side="${refocus}"]`)||wrap.querySelector('.sitem');if(el)el.focus();refocus=null}};
+    anim=requestAnimationFrame(step);
+    status.textContent=`${lin([L.x,'x'],[L.w,''])} ${bal()?'=':'≠'} ${lin([Rt.x,'x'],[Rt.w,''])}`;
+    status.style.color=bal()?'':'#FFA3B5';
+    note.textContent=done()?`Geschafft: x = ${pt.x}.`:bal()?'Im Gleichgewicht.':'Schief! Was du auf einer Seite wegnimmst, musst du auch auf der anderen wegnehmen.';
+    const k=divisor();divBtn.hidden=!(k&&bal());divBtn.textContent=`Beide Seiten durch ${k} teilen`;divBtn.dataset.k=k;
+  }
+  function take(side,k,kb){
+    const s=side==='L'?L:Rt,key=k==='x'?'x':'w';if(!s[key])return;
+    s[key]--;SFX.click();if(kb)refocus=side;update();
+    if(done())SFX.good();
+  }
+  wrap.addEventListener('click',e=>{const it=e.target.closest('.sitem');if(it)take(it.dataset.side,it.dataset.k,false)});
+  wrap.addEventListener('keydown',e=>{if(e.key!=='Enter'&&e.key!==' ')return;const it=e.target.closest('.sitem');if(it){e.preventDefault();take(it.dataset.side,it.dataset.k,true)}});
+  divBtn.addEventListener('click',()=>{const k=Number(divBtn.dataset.k);[L,Rt].forEach(s=>{s.x/=k;s.w/=k});SFX.click();update();if(done())SFX.good()});
+  update();
+  const node=h('div',{class:'part'},wrap,status,note,h('div',{class:'scalebar'},divBtn,resetBtn));
+  return{node,check(){
+    if(done())return{ok:true};
+    if(!bal())return{ok:false,msg:'Die Waage ist schief. Was du auf einer Seite wegnimmst, musst du auch auf der anderen wegnehmen. Tipp auf „Neu aufbauen“, wenn du neu anfangen willst.'};
+    return{ok:false,msg:'Die Waage ist im Gleichgewicht, aber x liegt noch nicht allein auf einer Seite.'};
+  }};
+}
+
+/* ================= RÄTSEL ERGÄNZEN ================= */
+const findP=id=>LEVELS.flatMap(L=>L.puzzles).find(p=>p.id===id);
+/* Schlösser mit Drehrädern statt Textfeldern. Diese Generatoren liefern immer |x|, |y| ≤ 9. */
+['3.1','3.2','4.2','4.3'].forEach(id=>{
+  const p=findP(id),g0=p.gen;
+  p.gen=R=>{const r=g0(R);r.parts=r.parts.map(pt=>pt.t==='input'&&pt.fields.length===2&&pt.fields[0].l==='x ='?{t:'dials',a:[pt.fields[0].a,pt.fields[1].a],q:'Stell das Zahlenschloss auf (x | y):'}:pt);return r};
+});
+Object.assign(findP('3.3'),{story:'Die Waage im Lager ist eine echte Balkenwaage. ARGUS hat das Gleichsetzen darauf gelegt: orange Kisten sind x, grüne Gewichte wiegen 1.',
+  gen:R=>{
+    let x,a,b,c,d,k;
+    do{x=R.int(2,5);c=R.int(1,2);k=R.int(1,2);a=c+k;b=R.int(1,5);d=k*x+b}while(d>14);
+    const I1=lin([a,'x'],[b,'']),I2=lin([c,'x'],[d,'']);
+    return{q:`I: y = ${I1} und II: y = ${I2}. Gleichsetzen ergibt ${I1} = ${I2}. Tippe Kisten und Gewichte an, um sie wegzunehmen, bis auf einer Seite nur noch ein x liegt.`,
+      parts:[{t:'scale',a,b,c,d,x},I([{l:'y =',a:a*x+b}],{q:'Und wie groß ist y? Setze x in I ein.'})],
+      hints:['Nimm auf beiden Seiten je ein x weg, bis rechts kein x mehr liegt. So bleibt die Waage im Gleichgewicht.',
+        `Nimm danach links die ${b} ${b===1?'Gewicht':'Gewichte'} weg und rechts genauso viele.${k>1?` Zum Schluss teilst du beide Seiten durch ${k}.`:''}`]};
+  }});
+Object.assign(findP('3.5'),{who:['piet']});
+Object.assign(findP('4.4'),{needs:'uv',lockStory:'An der Pinnwand hängt ein Zettel von Frau Tan. Er sieht leer aus, aber das Papier glänzt seltsam.',
+  lockHint:'Hier ist nichts zu sehen. Nur ein paar glänzende Spuren auf dem Papier.',unlockTxt:'Unter dem UV-Licht leuchtet violette Schrift auf.',who:['tan']});
+Object.assign(findP('B.2'),{needs:'card',lockStory:'Die Konsole ist gesperrt.',lockHint:'ZUGRIFF VERWEIGERT.\nZUGANGSKARTE EINLEGEN.',unlockTxt:'Piets Karte passt. Die Konsole fährt hoch.'});
+[['kurz','tan'],['tan','piet'],['kurz','tan']].forEach((w,i)=>{findP('7.'+(i+1)).who=w});
+Object.assign(LEVELS.find(L=>L.scene==='lager'),{dark:true,
+  intro:'TÜR 3 VERRIEGELT. Im Lager ist der Strom ganz weg: stockdunkel. Schalte unten im Inventar die Taschenlampe an und leuchte den Raum ab. Mit Gleichsetzen und Einsetzen knackst du die Schlösser. Fünf von sechs genügen. Das Türdisplay ist hier kaputt, den Türcode musst du berechnen.'});
+
+/* ================= GEGEN RATEN ================= */
+/* Falsch gewählte Antworten werden ausgegraut und lassen sich nicht nochmal wählen. */
+const outList=pt=>{
+  if(!pt._key||!S)return pt._out||(pt._out=[]);
+  const [id,k]=pt._key.split(':'),s=st(id);s.out=s.out||{};return s.out[k]||(s.out[k]=[]);
+};
+function outBtn(bt){
+  bt.classList.add('bad','out');bt.disabled=true;bt.setAttribute('aria-pressed','false');
+  bt.setAttribute('aria-label',bt.textContent+' (schon falsch gewählt)');
+}
+/* Sperrt „Prüfen“ bis zu einem Zeitpunkt. Die Sperre hängt am Rätsel, Schließen und Neu-Öffnen hilft nicht. */
+function lockCheck(p,until,label){
+  const s=st(p.id);s.until=until;s.untilLabel=label;
+  const b=cur&&cur.cb,me=cur;if(!b)return;
+  b.disabled=true;
+  const iv=setInterval(tickL,250);
+  function tickL(){
+    if(cur!==me||!b.isConnected){clearInterval(iv);return}
+    const left=Math.ceil((until-Date.now())/1000);
+    if(left<=0){clearInterval(iv);b.disabled=false;b.textContent='Prüfen'}
+    else b.textContent=`${label} (${left})`;
+  }
+  tickL();
+}
+/* Punktprobe mit zwei Gleichungen: Bei „Nein“ muss man sagen, welche Gleichung nicht stimmt. */
+function mkProbe(pt){
+  let sel=null,which=null;
+  const yes=h('button',{class:'opt',type:'button','aria-pressed':'false'},'Ja'),no=h('button',{class:'opt',type:'button','aria-pressed':'false'},'Nein');
+  const e1=h('button',{class:'opt',type:'button','aria-pressed':'false'},'Gleichung I'),e2=h('button',{class:'opt',type:'button','aria-pressed':'false'},'Gleichung II');
+  const follow=h('div',{class:'probe2',hidden:true},h('p',{class:'pq'},'Welche Gleichung stimmt nicht?'),h('div',{class:'opts two'},e1,e2));
+  /* E-Kurs: Nach „Ja“ muss man zur Probe einen Teil-Term von Gleichung II ausrechnen */
+  const needT=!isG()&&pt.term,tIn=h('input',{type:'text',inputmode:'text',autocomplete:'off','aria-label':'Wert des Terms'});
+  const tRow=needT?h('label',{class:'frow'},h('span',{class:'flab'},`${pt.term.txt} =`),tIn):null;
+  const yesFollow=needT?h('div',{class:'probe2',hidden:true},h('p',{class:'pq'},`Zur Probe: Setze den Punkt in Gleichung II ein. Welchen Wert hat ${pt.term.txt}?`),h('div',{class:'fields'},tRow)):null;
+  tIn.addEventListener('input',()=>tRow&&tRow.classList.remove('bad','good'));
+  const pick=(btns,b)=>btns.forEach(x=>{x.classList.remove('bad');x.setAttribute('aria-pressed',String(x===b))});
+  yes.addEventListener('click',()=>{sel=0;pick([yes,no],yes);follow.hidden=true;if(yesFollow)yesFollow.hidden=false});
+  no.addEventListener('click',()=>{sel=1;pick([yes,no],no);follow.hidden=false;if(yesFollow)yesFollow.hidden=true});
+  e1.addEventListener('click',()=>{which=1;pick([e1,e2],e1)});
+  e2.addEventListener('click',()=>{which=2;pick([e1,e2],e2)});
+  const outs=outList(pt),B={yes,no,e1,e2},out=k=>{outBtn(B[k]);if(!outs.includes(k))outs.push(k)};
+  outs.forEach(k=>outBtn(B[k]));
+  const node=h('div',{class:'part'},h('div',{class:'opts two'},yes,no),follow,yesFollow);
+  return{node,check(){
+    if(sel===null)return{ok:false,incomplete:true,msg:'Wähle zuerst Ja oder Nein.'};
+    if(sel===0){
+      if(needT){
+        const raw=tIn.value.trim(),v=num(raw);
+        if(!raw)return{ok:false,incomplete:true,msg:`Rechne noch die Probe: Welchen Wert hat ${pt.term.txt}?`};
+        if(Number.isNaN(v))return{ok:false,incomplete:true,msg:'Das versteht ARGUS nicht. Gib eine Zahl ein, zum Beispiel −6.'};
+        if(pt.c===0){
+          const ok=Math.abs(v-pt.term.val)<1e-9;tRow.classList.toggle('good',ok);tRow.classList.toggle('bad',!ok);
+          if(ok)return{ok:true};
+          if(pt.term.val!==0&&Math.abs(v+pt.term.val)<1e-9)return{ok:false,sign:true,msg:`ARGUS: VORZEICHENFEHLER bei ${pt.term.txt}. Der Betrag stimmt, das Vorzeichen nicht. Achte auf Minus mal Minus.`};
+          return{ok:false,msg:`„Ja“ stimmt, aber die Probe noch nicht. Setze den Punkt nochmal in ${pt.term.txt} ein.`};
+        }
+      }
+      if(pt.c===0)return{ok:true};
+      out('yes');sel=null;
+      return{ok:false,pick:true,msg:'Prüfe beide Gleichungen nochmal ganz genau. Stimmen wirklich beide?'};
+    }
+    if(pt.c===0){out('no');sel=null;follow.hidden=true;return{ok:false,pick:true,msg:'Rechne beide Gleichungen nochmal Schritt für Schritt nach. Achte auf die Vorzeichen.'}}
+    if(which===null)return{ok:false,incomplete:true,msg:'Richtig gedacht: keine Lösung. Gib jetzt noch an, welche Gleichung nicht stimmt.'};
+    if(which===pt.bad)return{ok:true};
+    out(which===1?'e1':'e2');
+    const w=which===1?'I':'II';which=null;
+    return{ok:false,pick:true,msg:`Es stimmt, der Punkt ist keine Lösung. Aber Gleichung ${w} ist erfüllt. Rechne die andere nach.`};
+  }};
+}
+
+/* ================= SOUND ================= */
+/* Alle Töne entstehen live mit Web Audio. Keine Audiodateien.
+   Die Lehrkraft kann Töne ganz abschalten. Sonst schaltet jedes Gerät selbst an oder aus. */
+const SNDKEY='technova-sound';
+const SND={on:true,ctx:null,master:null,hum:null};
+try{const v=localStorage.getItem(SNDKEY);if(v!=null)SND.on=v==='1'}catch(e){}
+const soundAllowed=()=>gcfg().sound!=='off';
+const soundOn=()=>SND.on&&soundAllowed();
+function actx(){
+  if(!SND.ctx){
+    const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return null;
+    SND.ctx=new AC();SND.master=SND.ctx.createGain();SND.master.gain.value=.5;SND.master.connect(SND.ctx.destination);
+  }
+  if(SND.ctx.state==='suspended')SND.ctx.resume();
+  return SND.ctx;
+}
+function tone(freq,dur,{type='sine',vol=.2,at=0,slide=null}={}){
+  if(!soundOn())return;const c=actx();if(!c)return;
+  const t=c.currentTime+at,o=c.createOscillator(),g=c.createGain();
+  o.type=type;o.frequency.setValueAtTime(freq,t);if(slide)o.frequency.exponentialRampToValueAtTime(slide,t+dur);
+  g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+.008);g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+  o.connect(g);g.connect(SND.master);o.start(t);o.stop(t+dur+.03);
+}
+function noise(dur,{vol=.15,at=0,f0=800,f1=200}={}){
+  if(!soundOn())return;const c=actx();if(!c)return;
+  const t=c.currentTime+at,buf=c.createBuffer(1,Math.ceil(c.sampleRate*dur),c.sampleRate),d=buf.getChannelData(0);
+  for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
+  const src=c.createBufferSource(),f=c.createBiquadFilter(),g=c.createGain();
+  src.buffer=buf;f.type='bandpass';f.Q.value=1.2;f.frequency.setValueAtTime(f0,t);f.frequency.exponentialRampToValueAtTime(f1,t+dur);
+  g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+dur*.25);g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+  src.connect(f);f.connect(g);g.connect(SND.master);src.start(t);src.stop(t+dur+.03);
+}
+const SFX={
+  key:()=>tone(1700+Math.random()*500,.02,{type:'square',vol:.025}),
+  click:()=>tone(2300,.018,{type:'square',vol:.05}),
+  good:()=>{tone(660,.12,{type:'triangle',vol:.18});tone(990,.25,{type:'triangle',vol:.18,at:.1})},
+  card:()=>[784,988,1319].forEach((f,i)=>tone(f,.2,{type:'triangle',vol:.15,at:i*.08})),
+  bad:()=>tone(150,.3,{type:'sawtooth',vol:.1,slide:105}),
+  sign:()=>{tone(880,.1,{type:'square',vol:.08});tone(880,.1,{type:'square',vol:.08,at:.15});tone(440,.28,{type:'square',vol:.07,at:.3})},
+  hint:()=>tone(520,.16,{vol:.14,slide:820}),
+  locked:()=>{tone(180,.12,{type:'square',vol:.07});tone(150,.16,{type:'square',vol:.07,at:.13})},
+  door:()=>{noise(1.1,{vol:.16,f0:250,f1:1500});tone(523,.3,{type:'triangle',vol:.13,at:.95});tone(784,.45,{type:'triangle',vol:.13,at:1.1})},
+  code:()=>[880,1175,1568].forEach((f,i)=>tone(f,.1,{type:'square',vol:.06,at:i*.1})),
+  star:i=>tone(1047+i*262,.3,{type:'triangle',vol:.14}),
+  warn:()=>[0,.3,.6].forEach(a=>tone(740,.18,{type:'square',vol:.07,at:a})),
+  tick:()=>tone(1250,.04,{type:'square',vol:.045}),
+  alarm:()=>{for(let i=0;i<3;i++){tone(988,.17,{type:'square',vol:.07,at:i*.42});tone(740,.17,{type:'square',vol:.07,at:i*.42+.21})}},
+  powerdown:()=>{tone(440,1.5,{type:'sawtooth',vol:.1,slide:35});noise(1.3,{vol:.08,f0:1400,f1:90})},
+  reboot:()=>{tone(55,1.2,{type:'sawtooth',vol:.09,slide:440});[523,659,784,1047].forEach((f,i)=>tone(f,.55,{type:'triangle',vol:.13,at:1.1+i*.12}))},
+  win:()=>[523,659,784,1047,784,1047].forEach((f,i)=>tone(f,i===5?.7:.16,{type:'triangle',vol:.15,at:i*.14}))
+};
+/* Leises Notstrom-Brummen, nur während des Spiels */
+function humStart(){
+  if(!soundOn()||SND.hum)return;const c=actx();if(!c)return;
+  const g=c.createGain(),f=c.createBiquadFilter();f.type='lowpass';f.frequency.value=170;
+  g.gain.setValueAtTime(.0001,c.currentTime);g.gain.exponentialRampToValueAtTime(.022,c.currentTime+1.5);
+  const os=[55,55.6].map(fr=>{const o=c.createOscillator();o.type='sawtooth';o.frequency.value=fr;o.connect(f);o.start();return o});
+  f.connect(g);g.connect(SND.master);SND.hum={g,os};
+}
+function humStop(){
+  if(!SND.hum||!SND.ctx)return;const {g,os}=SND.hum,t=SND.ctx.currentTime;SND.hum=null;
+  g.gain.cancelScheduledValues(t);g.gain.setValueAtTime(Math.max(g.gain.value,.0001),t);g.gain.exponentialRampToValueAtTime(.0001,t+.4);
+  os.forEach(o=>o.stop(t+.45));
+}
+function paintSound(){
+  document.querySelectorAll('.sndbtn').forEach(b=>{
+    b.hidden=!soundAllowed();b.setAttribute('aria-pressed',String(SND.on));b.textContent=SND.on?'Ton: an':'Ton: aus';
+  });
+}
+function toggleSound(){
+  SND.on=!SND.on;try{localStorage.setItem(SNDKEY,SND.on?'1':'0')}catch(e){}
+  paintSound();
+  if(!SND.on)humStop();else{SFX.good();if(!$('#game').hidden)humStart()}
+}
+
+document.querySelectorAll('.sndbtn').forEach(b=>b.addEventListener('click',toggleSound));
+
+/* ================= SPIELZUSTAND ================= */
+let S=null,cur=null,typing=null,tick=null;
+const newState=(mode,names)=>({mode,names,active:0,scores:[0,0],lvl:0,stats:{},clues:[],stars:[],t:0,streak:0,done:false,
+  seed:String(Math.floor(Math.random()*1e9)),signErr:[0,0],fin:{},codes:{},inv:[],used:{},light:false,seen:[]});
+const save=()=>{if(S&&S.preview)return;try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const load=()=>{try{const s=localStorage.getItem(KEY);return s?JSON.parse(s):null}catch(e){return null}};
+const wipe=()=>{try{localStorage.removeItem(KEY)}catch(e){}};
+const lvl=()=>LEVELS[S.lvl];
+const st=id=>S.stats[id]||(S.stats[id]={wrong:0,hints:0,solved:false,first:false});
+const solvedCount=()=>lvl().puzzles.filter(p=>S.stats[p.id]&&S.stats[p.id].solved).length;
+/* G-Kurs: In Räumen mit mindestens fünf Rätseln reicht eine Codekarte weniger. */
+const needCount=()=>{const n=lvl().puzzles.length;return lvl().bonus?0:(isG()&&n>=5?n-2:n-1)};
+const teamName=i=>S.names[i];
+const mmss=t=>String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0');
+
+function say(msg){
+  clearInterval(typing);const t=$('#termtxt');
+  if(reduce){t.textContent=msg;return}
+  let i=0;t.textContent='';
+  typing=setInterval(()=>{t.textContent=msg.slice(0,++i);if(i%3===0&&/\S/.test(msg[i-1]))SFX.key();if(i>=msg.length)clearInterval(typing)},14);
+}
+function show(id){
+  /* Intro-Grafik und Spielszene teilen sich SVG-IDs. Darum steht immer nur eine im DOM. */
+  if(id==='intro'){$('#scene').innerHTML='';$('#herosvg').innerHTML=sceneSvg(0,false,null)}
+  else $('#herosvg').innerHTML='';
+  ['intro','game','end'].forEach(k=>$('#'+k).hidden=(k!==id));window.scrollTo(0,0);
+  paintSound();if(id==='game')humStart();else humStop();
+}
+
+function renderHud(){
+  const pl=playable().filter(i=>!LEVELS[i].bonus),mains=pl.length,no=pl.filter(i=>i<=S.lvl).length;
+  $('#room').textContent=(S.preview?'VORSCHAU · ':'')+(lvl().bonus?`Bonusraum: ${lvl().room}`:`Raum ${no} von ${mains}: ${lvl().room}`);
+  $('#pvHelp').hidden=$('#pvNext').hidden=!S.preview;$('#pvNext').disabled=false;
+  $('#topic').textContent=lvl().topic;
+  paintClock();renderInv();
+  const box=$('#scorebox');box.replaceChildren();
+  if(S.mode==='solo')box.append(h('div',{class:'sc t0'},h('small',{},'Punkte'),String(S.scores[0])));
+  else [0,1].forEach(i=>box.append(h('div',{class:`sc t${i}${S.active===i?' on':''}`},h('small',{},S.active===i?'ist dran':'wartet'),`${teamName(i)}: ${S.scores[i]}`)));
+}
+function renderScene(){
+  $('#scene').innerHTML=sceneSvg(S.lvl,true,S.stats);paintDark();
+  const dr=$('#door');
+  if(solvedCount()>=needCount())dr.setAttribute('aria-label','Ausgangstür, entriegelt');
+}
+function startLevel(first){
+  if(S.seen&&!S.seen.includes(S.lvl))S.seen.push(S.lvl);
+  const extra=[];
+  for(const k in ITEMS)if(ITEMS[k].use===lvl().scene&&grant(k))extra.push(ITEMS[k].auto);
+  if(lvl().dark)S.light=false;
+  renderHud();renderScene();
+  say(lvl().intro+(isG()&&!lvl().bonus?` G-KURS: Hier reichen ${needCount()} Codekarten.`:'')+(extra.length?' '+extra.join(' '):''));save();
+}
+function startGame(mode){
+  const names=[$('#n0').value.trim()||'Team Orange',$('#n1').value.trim()||'Team Blau'];
+  S=newState(mode,names);S.cfg=JSON.parse(JSON.stringify(CFG));
+  if(S.cfg.same)S.seed='k:'+S.cfg.code;
+  S.lvl=playable()[0];SFX.alarm();
+  show('game');startLevel();startTick();
+}
+function startTick(){
+  clearInterval(tick);
+  tick=setInterval(()=>{
+    if(!S||S.done||S.timeout||$('#game').hidden)return;
+    S.t++;paintClock();if(S.t%10===0)save();
+    const left=limitLeft();
+    if(left===300||left===60)SFX.warn();else if(left!=null&&left>0&&left<=10)SFX.tick();
+    if(left===0)timeUp();
+  },1000);
+}
+
+/* ================= RÄTSEL-PANEL ================= */
+function openPuzzle(i){
+  const p=inst(lvl().puzzles[i]);
+  if(S.stats[p.id]&&S.stats[p.id].solved){say('Diese Codekarte hast du schon. Such dir ein anderes Rätsel.');return}
+  cur={p,i,hint:0,wrongDuel:0,parts:[],open:true};
+  $('#pkick').textContent=`${lvl().room}, ${lvl().topic}`;
+  $('#ptitle').textContent=p.name;
+  $('#pwho').replaceChildren(...(p.who||[]).map(whoChip));
+  $('#phints').replaceChildren();
+  $('#pfb').textContent='';$('#pfb').className='fb';
+  drawTurn();
+  if(p.needs&&!S.used[p.id])showLocked(p);else fillPuzzle(p);
+  $('#panel').showModal();
+}
+function fillPuzzle(p){
+  cur.parts=p.parts.map((pt,k)=>{pt._key=p.id+':'+k;return mkPart(pt)});
+  $('#pstory').textContent=p.story;
+  $('#pq').textContent=p.q;$('#pq').classList.toggle('ink',p.needs==='uv');
+  $('#pbody').replaceChildren(...cur.parts.map(x=>x.node));
+  const hb=h('button',{class:'btn',type:'button',id:'hbtn',onclick:giveHint},`Tipp holen (${isG()?'kostenlos':'kostet 25 Punkte'})`);
+  const cb=h('button',{class:'btn primary',type:'button',onclick:checkPuzzle},'Prüfen');cur.cb=cb;
+  $('#pactions').replaceChildren(hb,cb);
+  const ps=S.stats[p.id];if(ps&&ps.until>Date.now())lockCheck(p,ps.until,ps.untilLabel||'Gesperrt');
+}
+/* Gesperrtes Rätsel: erst mit dem passenden Gegenstand aus dem Inventar lesbar */
+function showLocked(p){
+  const k=p.needs,txt=h('p',{},p.lockHint),box=h('div',{class:'locked '+k},txt);
+  $('#pstory').textContent=p.lockStory;$('#pq').textContent='';
+  const use=h('button',{class:'btn primary',type:'button'},h('span',{class:'ico',html:ICON[k]}),`${ITEMS[k].name} benutzen`);
+  use.disabled=!hasItem(k);
+  use.addEventListener('click',()=>{
+    S.used[p.id]=true;save();k==='uv'?SFX.hint():SFX.code();
+    box.classList.add('reveal');use.disabled=true;
+    txt.textContent=k==='uv'?'Violette Schrift erscheint …':'ZUGANG GEWÄHRT.';
+    $('#pfb').className='fb good';$('#pfb').textContent=p.unlockTxt;
+    setTimeout(()=>{if(cur&&cur.p===p)fillPuzzle(p)},reduce?0:900);
+  });
+  $('#pbody').replaceChildren(box);
+  $('#pactions').replaceChildren(use);
+}
+function drawTurn(){
+  const box=$('#pturn');box.replaceChildren();
+  if(S.mode==='duel'){
+    const steal=cur&&cur.wrongDuel===1;
+    box.append(h('span',{class:`turn t${S.active}`},steal?`${teamName(S.active)} darf klauen`:`${teamName(S.active)} ist dran`));
+  }
+}
+function giveHint(auto){
+  if(cur.hint>=cur.p.hints.length)return;
+  const txt=cur.p.hints[cur.hint++];st(cur.p.id).hints++;SFX.hint();
+  $('#phints').append(h('p',{},`${auto===true?'ARGUS hilft nach zwei Fehlversuchen. ':''}Tipp ${cur.hint}: ${txt}`));
+  if(cur.hint>=cur.p.hints.length){$('#hbtn').disabled=true;$('#hbtn').textContent='Keine Tipps mehr'}
+  else $('#hbtn').textContent=`Noch ein Tipp (${cur.hint} von ${cur.p.hints.length})`;
+  save();
+}
+function checkPuzzle(){
+  const res=cur.parts.map(x=>x.check());
+  const fb=$('#pfb');
+  if(res.every(r=>r.ok))return success();
+  /* Nichts gewählt oder Feld leer: Hinweis, aber kein Fehlversuch */
+  if(res.every(r=>r.ok||r.incomplete)){fb.className='fb';fb.textContent=res.find(r=>r.incomplete).msg;return}
+  st(cur.p.id).wrong++;
+  const sign=res.some(r=>r.sign);
+  if(sign)S.signErr[S.mode==='solo'?0:S.active]++;
+  sign?SFX.sign():SFX.bad();
+  if(S.mode==='solo')S.streak=0;
+  if(S.mode==='duel'){
+    cur.wrongDuel++;
+    if(cur.wrongDuel===1){
+      S.active=1-S.active;renderHud();drawTurn();
+      fb.className='fb bad';fb.textContent=`Daneben. ${teamName(S.active)} darf das Rätsel klauen.`;save();return;
+    }
+    fb.className='fb bad';fb.textContent='Beide Teams daneben. Das Rätsel bleibt offen.';
+    save();
+    setTimeout(()=>{$('#panel').close();renderHud();say(`Beide Teams daneben. Als Nächstes ist ${teamName(S.active)} dran.`)},1400);
+    return;
+  }
+  /* Diagnose nur im Einzelmodus. Im Duell würde sie dem klauenden Team die Lösung verraten. */
+  const d=res.find(r=>!r.ok&&!r.incomplete&&r.msg)||res.find(r=>!r.ok&&r.msg);
+  fb.className='fb bad'+(sign?' sign':'');
+  fb.textContent=(res.length>1&&res[0].ok?'Der erste Teil stimmt. ':'')+(d?d.msg:'Noch nicht richtig. Rechne nochmal oder hol dir einen Tipp.');
+  /* Gegen Raten: nach zwei Fehlversuchen kommt der erste Tipp, nach einer falschen Auswahl eine kurze Sperre */
+  if(st(cur.p.id).wrong>=2&&cur.hint===0&&cur.p.hints.length){giveHint(true);lockCheck(cur.p,Date.now()+8000,'Lies erst den Tipp')}
+  else if(res.some(r=>r.pick))lockCheck(cur.p,Date.now()+5000,'Gesperrt');
+  save();
+}
+function success(){
+  const p=cur.p,s=st(p.id);
+  const paid=isG()?Math.max(0,s.hints-1):s.hints;
+  const base=Math.max(30,100-25*paid-10*s.wrong);
+  let bonus=0;
+  if(S.mode==='solo'){if(s.wrong===0){S.streak++;bonus=Math.min(S.streak-1,4)*5}else S.streak=0}
+  const gain=(base+bonus)*(lvl().bonus?2:1),who=S.mode==='solo'?0:S.active;
+  S.scores[who]+=gain;s.solved=true;s.first=(s.wrong===0&&s.hints===0);s.by=who;
+  const stolen=S.mode==='duel'&&cur.wrongDuel===1;
+  if(S.mode==='duel'&&!stolen)S.active=1-S.active;
+  const it=itemFrom(p.id);if(it&&grant(it))cur.found=it;
+  lvl().bonus?SFX.good():SFX.card();
+  const fb=$('#pfb');fb.className='fb good';
+  const card=lvl().bonus?null:genDoor(S.lvl).cards[cur.i];
+  fb.textContent=`${card?`Codekarte ${LET[cur.i]} gefunden: ${card.txt}. `:'Gelöst! '}+${gain} Punkte${S.mode==='duel'?' für '+teamName(who):''}${bonus?' (Serie +'+bonus+')':''}${cur.found?' Gefunden: '+ITEMS[cur.found].name+'!':''}`;
+  $('#pactions').replaceChildren(h('button',{class:'btn primary',type:'button',onclick:()=>$('#panel').close()},'Weiter'));
+  cur.open=false;save();renderHud();
+}
+$('#panel').addEventListener('close',()=>{
+  if(!S||!cur)return;
+  const justSolved=!cur.open;
+  renderScene();renderHud();
+  if(justSolved){
+    const c=solvedCount(),n=lvl().puzzles.length;
+    if(lvl().bonus)say(c===n?'Alle Bonus-Rätsel gelöst. Starke Leistung. Die Tür steht offen.':`Bonus-Rätsel ${c} von ${n}. Doppelte Punkte!`);
+    else{
+      const cd=(cur.found?ITEMS[cur.found].found+' ':'')+`Codekarte ${LET[cur.i]}: ${genDoor(S.lvl).cards[cur.i].txt}. `;
+      if(c===n)say(cd+'Alle Karten gefunden. Das gibt Bonus-Sterne. Ab zum Zahlenschloss.');
+      else if(c===needCount())say(cd+'Genug Karten. Das Zahlenschloss an der Tür ist bereit. Du kannst auch noch das letzte Rätsel lösen.');
+      else say(cd+`${c} von ${needCount()} Karten.`);
+    }
+  }
+  cur=null;
+});
+$('#pclose').addEventListener('click',()=>$('#panel').close());
+
+/* ================= TÜR, KARTEN, ENDE ================= */
+function useDoor(){
+  const c=solvedCount(),need=needCount();
+  if(c<need){const d=$('#door');d.classList.remove('nope');void d.getBoundingClientRect();d.classList.add('nope');SFX.locked();say(`Das Zahlenschloss braucht ${need} Codekarten. Du hast ${c}.`);return}
+  if(lvl().bonus||(S.codes[S.lvl]&&S.codes[S.lvl].done))return leaveRoom();
+  openLock();
+}
+function stars(){
+  const n=lvl().puzzles.length,all=solvedCount()===n;
+  const hints=lvl().puzzles.reduce((a,p)=>a+(S.stats[p.id]?S.stats[p.id].hints:0),0);
+  return all?(hints<=2?3:2):1;
+}
+function leaveRoom(){
+  const d=$('#door');d.classList.add('open');SFX.door();
+  const L0=lvl(),bonus=!!L0.bonus,n=L0.puzzles.length,c=solvedCount();
+  const sc=bonus?0:stars();
+  if(!bonus)S.stars[S.lvl]=sc;
+  const addClue=bonus?(c===n):true;
+  if(addClue&&!S.clues.includes(L0.clue))S.clues.push(L0.clue);
+  save();
+  setTimeout(()=>{
+    /* Nur Räume, die die Lehrkraft freigegeben hat. Den Bonusraum gibt es nur nach lauter vollständig gelösten Räumen. */
+    const rest=playable().filter(i=>i>S.lvl),doneMain=playable().filter(i=>i<=S.lvl&&!LEVELS[i].bonus);
+    const offer=rest.length>0&&!!LEVELS[rest[0]].bonus&&doneMain.every(i=>S.stars[i]>=2);
+    const bonusIdx=offer?rest[0]:null,afterIdx=rest.find(i=>!LEVELS[i].bonus),after=afterIdx!=null?LEVELS[afterIdx]:null;
+    const last=afterIdx==null&&S.lvl===LEVELS.length-1;
+    const no=doneMain.length;
+    const body=[h('p',{},L0.outro)];
+    /* Gegenstand aus diesem Raum, falls das Fund-Rätsel ungelöst blieb */
+    Object.keys(ITEMS).filter(k=>L0.puzzles.some(p=>p.id===ITEMS[k].from)).forEach(k=>{if(grant(k))body.push(h('div',{class:'clue'},h('span',{class:'ico',html:ICON[k]}),h('b',{},'Eingesteckt: '+ITEMS[k].name),h('p',{style:'margin:6px 0 0'},ITEMS[k].found)))});
+    if(bonus)body.push(h('p',{},`Bonus-Rätsel gelöst: ${c} von ${n}. Alle Punkte dort zählen doppelt.`));
+    else body.push(h('div',{class:'stars','aria-label':sc+' von 3 Sternen'},'★'.repeat(sc)+'☆'.repeat(3-sc)));
+    if(addClue)body.push(h('div',{class:'clue'},h('b',{},'Neues Beweisstück in der Fallakte'),h('p',{style:'margin:6px 0 0'},L0.clue)));
+    if(offer)body.push(h('div',{class:'clue'},h('b',{},'Hinweis: Bonusraum'),h('p',{style:'margin:6px 0 0'},'Du hast bisher jeden Raum komplett gelöst. Hinter einer Seitentür liegt der Bonusraum Haustechnik. Dort zählen alle Punkte doppelt. Pflicht ist er nicht.')));
+    const title=last?'Reparatur-Codes angenommen':(bonus?'Bonusraum verlassen':`Tür ${no} ist offen`);
+    const next=after?{label:`Weiter in: ${after.room}`,fn:()=>{S.lvl=afterIdx;startLevel()}}
+      :last?{label:'Zum Finale',fn:finale}:{label:'Zur Auswertung',fn:finish};
+    if(offer)showCard({title,body,btn:'Bonusraum betreten',onclose:()=>{S.lvl=bonusIdx;startLevel()},alt:next});
+    else showCard({title,body,btn:next.label,onclose:next.fn});
+    for(let i=0;i<sc;i++)setTimeout(()=>SFX.star(i),350+i*260);
+  },reduce?0:1200);
+}
+function showCard({title,body,btn,onclose,alt}){
+  const c=$('#cardbody');
+  const acts=[h('button',{class:'btn primary',type:'button',onclick:()=>{$('#card').close();onclose&&onclose()}},btn)];
+  if(alt)acts.push(h('button',{class:'btn',type:'button',onclick:()=>{$('#card').close();alt.fn()}},alt.label));
+  c.replaceChildren(h('h2',{id:'ctitle'},title),h('div',{style:'margin-top:12px'},body),h('div',{class:'actions'},acts));
+  $('#card').showModal();
+}
+$('#card').addEventListener('cancel',e=>e.preventDefault());
+function openFiles(){
+  const b=$('#fbody'),H=t=>h('h3',{class:'fh'},t);b.replaceChildren();
+  b.append(H('Verdächtige'),h('div',{class:'people'},CAST.map(k=>personCard(k,true))),H('Beweisstücke'));
+  if(!S||!S.clues.length)b.append(h('p',{},'Noch keine Beweisstücke. Öffne eine Tür, dann bekommst du das erste.'));
+  else b.append(h('ol',{},S.clues.map(c=>h('li',{},c))));
+  if(S&&S.inv&&S.inv.length)b.append(H('Inventar'),h('ul',{class:'invlist'},S.inv.map(k=>h('li',{},h('span',{class:'ico',html:ICON[k]}),h('span',{},h('b',{},ITEMS[k].name+': '),ITEMS[k].desc)))));
+  if(S&&!$('#game').hidden&&!lvl().bonus){
+    const D=genDoor(S.lvl),hv=haveCards();
+    b.append(H('Codekarten in diesem Raum'),
+      hv.some(Boolean)?h('ul',{style:'padding-left:22px'},D.cards.map((cd,i)=>hv[i]?h('li',{},`${LET[i]}: ${cd.txt}`):null)):h('p',{},'Noch keine. Löse ein Rätsel.'));
+  }
+  $('#files').showModal();
+}
+
+/* ================= TÜRCODE UND ZAHLENRAD ================= */
+/* Jedes Rätsel eines Raums gibt eine Codekarte: eine Gerade durch den Türcode (x | y).
+   Je zwei Karten sind nie parallel, also reichen zwei Karten zum Rechnen. Die übrigen sind für die Probe.
+   code 'graph': y = mx + b, Türdisplay zeichnet die Geraden. 'y': y = mx + b ohne Grafik.
+   'std': ax + by = c, Karte A und B haben entgegengesetzte y-Koeffizienten. 'mix': abwechselnd. */
+const DCOL=['#FF7A1A','#5AA9FF','#5BE0B8','#E8C25A','#FF6B88','#B48CFF','#9AA9C4'];
+const LET='ABCDEFG';
+function genDoor(li){
+  const L=LEVELS[li],key=S.seed+'|door|'+li;
+  if(INST.has(key))return INST.get(key);
+  const R=mkR(S.seed,'door'+li),n=L.puzzles.length,gr=L.code==='graph';
+  let res;
+  outer:for(;;){
+    const x=gr?R.int(0,6):R.nz(-5,8),y=gr?R.int(0,8):R.nz(-5,9),cards=[];
+    for(let i=0;i<n;i++){
+      const kind=L.code==='std'?'std':L.code==='mix'?(i%2?'std':'y'):'y';
+      let card=null;
+      for(let t=0;t<200&&!card;t++){
+        let a,b,c,txt;
+        if(kind==='y'){const m=R.nz(-3,4),q=y-m*x;if(Math.abs(q)>(gr?12:15))continue;a=-m;b=1;c=q;txt=yf(m,q)}
+        else{a=R.int(1,4);b=(L.code==='std'&&i===1)?-cards[0].b:R.nz(-4,4);c=a*x+b*y;txt=std(a,b,c)}
+        if(Math.abs(c)>40)continue;
+        if(cards.some(p=>p.a*b-a*p.b===0))continue;
+        card={a,b,c,txt};
+      }
+      if(!card)continue outer;
+      cards.push(card);
+    }
+    res={x,y,cards};break;
+  }
+  INST.set(key,res);
+  return res;
+}
+const haveCards=()=>lvl().puzzles.map(p=>!!(S.stats[p.id]&&S.stats[p.id].solved));
+
+/* Ein Zahlenrad von −9 bis 9. Bedienbar mit Pfeiltasten, Ziffern, Minus, Mausrad, Wischen und Knöpfen. */
+function mkDial(label){
+  let v=0,neg=false;
+  const strip=h('div',{class:'strip','aria-hidden':'true'});
+  const win=h('div',{class:'win',role:'spinbutton',tabindex:'0','aria-label':label+'-Wert','aria-valuemin':'-9','aria-valuemax':'9'},strip);
+  const wrap=n=>((n+9)%19+19)%19-9;
+  function paint(dir){
+    strip.replaceChildren(...[1,0,-1].map(d=>h('span',{class:d?'':'cur'},fz(wrap(v+d)))));
+    win.setAttribute('aria-valuenow',v);win.setAttribute('aria-valuetext',v<0?'minus '+(-v):String(v));
+    if(dir&&!reduce){strip.classList.remove('up','down');void strip.offsetWidth;strip.classList.add(dir>0?'down':'up')}
+  }
+  const step=d=>{v=wrap(v+d);if(v)neg=v<0;paint(d);SFX.click()};
+  win.addEventListener('keydown',e=>{
+    if(e.key==='ArrowUp'){e.preventDefault();step(1)}
+    else if(e.key==='ArrowDown'){e.preventDefault();step(-1)}
+    else if(e.key==='-'||e.key==='Subtract'){e.preventDefault();neg=!neg;v=neg?-Math.abs(v):Math.abs(v);paint(0);SFX.click()}
+    else if(/^\d$/.test(e.key)){e.preventDefault();v=(neg?-1:1)*Number(e.key);paint(0);SFX.click()}
+  });
+  win.addEventListener('wheel',e=>{e.preventDefault();step(e.deltaY<0?1:-1)},{passive:false});
+  let y0=null;
+  win.addEventListener('pointerdown',e=>{y0=e.clientY;win.setPointerCapture(e.pointerId);win.focus()});
+  win.addEventListener('pointermove',e=>{if(y0==null)return;const d=e.clientY-y0;if(Math.abs(d)>=26){step(d>0?1:-1);y0=e.clientY}});
+  const end=()=>{y0=null};win.addEventListener('pointerup',end);win.addEventListener('pointercancel',end);
+  paint(0);
+  return{node:h('div',{class:'dial'},h('span',{class:'lab'},label),
+    h('button',{type:'button','aria-label':label+' erhöhen',onclick:()=>step(1)},'▲'),win,
+    h('button',{type:'button','aria-label':label+' verringern',onclick:()=>step(-1)},'▼')),get:()=>v};
+}
+
+function openLock(){
+  const li=S.lvl,L=lvl(),D=genDoor(li),have=haveCards(),gr=L.code==='graph'||isG(),wide=L.code!=='graph',duel=S.mode==='duel';
+  const rec=S.codes[li]||(S.codes[li]={tries:0});
+  const box=$('#lockbody');
+  let plot=null;
+  if(gr){
+    const g=wide?grid(-6,9,-6,10,22):grid(-2,8,-3,10,30),clip='c'+(++uid);
+    plot=h('div',{class:'gwrap'});
+    plot.innerHTML=`<svg class="gsvg" viewBox="${g.vb}" role="img" aria-label="Türdisplay mit den Geraden deiner Codekarten"><defs><clipPath id="${clip}"><rect width="${g.w}" height="${g.hh}"/></clipPath></defs>${g.g}${D.cards.map((cd,i)=>have[i]?lineEl(g,-cd.a/cd.b,cd.c/cd.b,DCOL[i],clip,4):'').join('')}</svg>`;
+  }
+  const cards=h('div',{class:'ccards'},D.cards.map((cd,i)=>have[i]
+    ?h('div',{class:'ccard'},h('span',{class:'cl',style:`--c:${DCOL[i]}`},LET[i]),h('b',{},cd.txt),h('small',{},L.puzzles[i].name))
+    :h('div',{class:'ccard off'},h('span',{class:'cl'},'?'),h('span',{},'noch nicht gefunden'),h('small',{},L.puzzles[i].name))));
+  const dx=mkDial('x'),dy=mkDial('y');
+  const lock=h('div',{class:'lock'},h('span',{class:'br'},'('),dx.node,h('span',{class:'br'},'|'),dy.node,h('span',{class:'br'},')'));
+  const turn=duel?h('span',{class:`turn t${S.active}`},`${teamName(S.active)} dreht am Schloss`):null;
+  const fb=h('div',{class:'fb','aria-live':'polite'});
+  const go=h('button',{class:'btn primary',type:'button'},'Code eingeben');
+  const acts=h('div',{class:'actions'},go);
+  let timer=null;
+  function lockout(){
+    clearInterval(timer);
+    const upd=()=>{const s=Math.ceil(((rec.until||0)-Date.now())/1000);
+      if(s<=0){clearInterval(timer);go.disabled=false;go.textContent='Code eingeben'}
+      else{go.disabled=true;go.textContent=`Schloss gesperrt: ${s} s`}};
+    upd();timer=setInterval(upd,250);
+  }
+  go.addEventListener('click',()=>{
+    const x=dx.get(),y=dy.get();
+    if(x===D.x&&y===D.y){
+      const pts=[50,30][rec.tries]||10,who=duel?S.active:0;
+      S.scores[who]+=pts;rec.done=true;clearInterval(timer);
+      lock.classList.add('open');SFX.code();
+      fb.className='fb good';fb.textContent=`ARGUS: CODE (${fz(x)} | ${fz(y)}) AKZEPTIERT. +${pts} Punkte${duel?' für '+teamName(who):''}`;
+      acts.replaceChildren(h('button',{class:'btn primary',type:'button',onclick:()=>{$('#lockdlg').close();leaveRoom()}},'Tür öffnen'));
+      save();renderHud();return;
+    }
+    rec.tries++;
+    lock.classList.remove('shake');void lock.offsetWidth;lock.classList.add('shake');
+    const swapped=x===D.y&&y===D.x&&D.x!==D.y;
+    const sign=(x===-D.x&&D.x!==0&&y===D.y)||(y===-D.y&&D.y!==0&&x===D.x)||(x===-D.x&&y===-D.y&&D.x!==0&&D.y!==0);
+    if(sign)S.signErr[duel?S.active:0]++;
+    let msg;
+    if(duel){S.active=1-S.active;renderHud();msg=`Falscher Code. Jetzt versucht es ${teamName(S.active)}.`;turn.className=`turn t${S.active}`;turn.textContent=`${teamName(S.active)} dreht am Schloss`}
+    else{
+      const on=[],off=[];
+      D.cards.forEach((cd,i)=>{if(have[i])(cd.a*x+cd.b*y===cd.c?on:off).push(LET[i])});
+      msg=swapped?'x und y vertauscht? Im Code (x | y) steht x vorne.'
+        :sign?'ARGUS: VORZEICHENFEHLER IM CODE. Der Betrag stimmt, ein Vorzeichen nicht.'
+        :on.length?`Dein Code passt zu Karte ${on.join(', ')}, aber nicht zu Karte ${off.join(', ')}. Mach die Probe mit allen Karten.`
+        :'Dein Code passt zu keiner einzigen Karte. Setz ihn zur Probe in eine Karte ein.';
+    }
+    sign?SFX.sign():SFX.bad();
+    fb.className='fb bad'+(sign&&!duel?' sign':'');
+    fb.textContent=msg+' Das Schloss ist kurz gesperrt.';
+    rec.until=Date.now()+8000;lockout();save();
+  });
+  box.replaceChildren(...[
+    h('header',{},h('div',{},h('div',{class:'kicker'},`${L.room}, Ausgangstür`),h('h2',{id:'ltitle'},'Zahlenschloss')),
+      h('button',{class:'btn small ghost',type:'button',onclick:()=>$('#lockdlg').close()},'Schließen')),
+    h('p',{class:'pstory'},gr
+      ?'Alle Geraden auf deinen Codekarten laufen durch denselben Punkt. Dieser Punkt ist der Türcode (x | y). Das Türdisplay zeichnet sie dir ein.'
+      :'Alle Gleichungen auf deinen Codekarten haben dieselbe Lösung. Diese Lösung ist der Türcode (x | y). Das Türdisplay ist kaputt, hier musst du rechnen.'),
+    plot,cards,
+    gr?null:h('p',{class:'tipline'},'Tipp: Such dir zwei Karten aus, mit denen es am schnellsten geht. Mit einer dritten Karte machst du die Probe.'),
+    turn,
+    lock,fb,acts].filter(Boolean));
+  $('#lockdlg').showModal();
+  lockout();
+  $('#lockdlg').addEventListener('close',()=>clearInterval(timer),{once:true});
+}
+$('#lockdlg').addEventListener('click',e=>{if(e.target===$('#lockdlg'))$('#lockdlg').close()});
+
+/* ================= FINALE ================= */
+/* Drei Schritte: Ursache benennen, Fehlerzeile finden, richtig rechnen.
+   Im Duell lösen beide Teams das Finale gemeinsam, ohne Punkte. */
+function finale(){
+  const R=mkR(S.seed,'finale'),W=worked(R,R.pick(['A','B'])),solo=S.mode==='solo';
+  S.fin=S.fin||{};
+  const box=$('#cardbody');
+  const award=(key,v)=>{if(!solo||S.fin[key]!=null)return 0;S.fin[key]=v;S.scores[0]+=v;renderHud();return v};
+  function step(o){
+    let tries=0;
+    const fb=h('div',{class:'fb','aria-live':'polite'});
+    const go=h('button',{class:'btn primary',type:'button'},'Prüfen');
+    const acts=h('div',{class:'actions'},go);
+    go.addEventListener('click',()=>{
+      const r=o.part.check();
+      if(!r.ok){
+        if(r.incomplete){fb.className='fb';fb.textContent=r.msg;return}
+        tries++;if(r.sign&&solo)S.signErr[0]++;r.sign?SFX.sign():SFX.bad();
+        fb.className='fb bad'+(r.sign?' sign':'');
+        fb.textContent=(r.msg||'Noch nicht richtig.')+(tries>=2&&o.hint?' Tipp: '+o.hint:'');
+        save();return;
+      }
+      const pts=award(o.key,Math.max(o.min,o.max-o.step*tries));
+      SFX.good();fb.className='fb good';fb.textContent=o.ok+(pts?` +${pts} Punkte`:'');
+      acts.replaceChildren(h('button',{class:'btn primary',type:'button',onclick:o.next},o.nextLabel||'Weiter'));
+      save();
+    });
+    box.replaceChildren(h('div',{class:'kicker'},o.kick),h('h2',{id:'ctitle'},o.title),h('div',{style:'margin-top:12px'},o.intro),o.part.node,fb,acts);
+    if(!$('#card').open)$('#card').showModal();
+    box.scrollTop=0;
+  }
+  const step1=()=>step({key:'who',kick:'Finale, Schritt 1 von 3',title:'Wer hat ARGUS lahmgelegt?',
+    intro:[h('p',{},'ARGUS nimmt die Reparatur-Codes an, startet aber nicht neu. Erst muss jemand die Ursache benennen.'+(solo?'':' Dieses Finale löst ihr beide Teams gemeinsam.')),
+      h('div',{class:'people'},CAST.map(k=>personCard(k,false))),
+      h('div',{class:'clue'},h('b',{},'Deine Fallakte'),h('ol',{style:'margin:6px 0 0;padding-left:22px'},S.clues.map(c=>h('li',{},c))))],
+    part:mkChoice({q:'Wer oder was steckt dahinter?',c:3,o:[
+      'Hausmeister Kurz. Er hat den Hauptschalter umgelegt.',
+      'Frau Tan. Sie wollte die Inventur sabotieren.',
+      'Piet. Er hat sich in den Serverraum geschlichen.',
+      'Niemand von den dreien. Piets neue Preisformel ist um 19:58 automatisch gestartet, und darin steckt ein Vorzeichenfehler.'],
+      why:['Beweis 6: Kurz war nie im Serverraum. Und um 19:58 lief ein Software-Update, kein Handgriff (Beweis 1).',
+        'Beweis 6: Frau Tans Weg ist sauber. Ihre Notiz (Beweis 4) zeigt nur, dass sie vom Test wusste.',
+        'Beweis 6: Niemand war im Serverraum. Piet hat etwas falsch gemacht, aber nicht das. Was steht in Beweis 3 und 4?']}),
+    max:60,step:20,min:0,ok:'Genau. Kein Einbruch, keine Sabotage. Nur ein Update mit einem einzigen falschen Vorzeichen. Jetzt musst du es finden.',
+    hint:'Lies Beweis 1, 4 und 6 zusammen.',next:step2});
+  const step2=()=>step({key:'spot',kick:'Finale, Schritt 2 von 3',title:'Finde das kippende Vorzeichen',
+    intro:[h('p',{},'Das ist der Ausdruck von der Werkbank (Beweis 5). Mit diesem Rechenweg prüft ARGUS seit 19:58 jeden Preis. Irgendwo kippt ein Vorzeichen, und danach ist alles falsch.')],
+    part:mkSpot({lines:W.lines,err:W.err,q:'Tippe auf die Zeile, in der der Fehler passiert.'}),
+    max:100,step:25,min:25,ok:`Gefunden! In Zeile ${W.err+1} kippt das Vorzeichen. Alles danach ist nur ein Folgefehler.`,
+    hint:W.err===2?'Achte beim Klammer auflösen auf jedes einzelne Vorzeichen.':'Achte darauf, was beim Umstellen mit dem Vorzeichen passiert.',next:step3});
+  const step3=()=>step({key:'fix',kick:'Finale, Schritt 3 von 3',title:'Repariere ARGUS',
+    intro:[h('p',{},'Rechne das System richtig. Dein Ergebnis ist der Freigabe-Code für den Neustart.'),h('p',{class:'eq'},W.lines[0])],
+    part:mkInput({q:'Freigabe-Code (x | y):',fields:XY(W.x,W.y),trap:{vals:[W.xw,W.yw],msg:'Das ist genau Piets falsches Ergebnis. ARGUS braucht das richtige.'}}),
+    max:100,step:25,min:25,ok:'Code akzeptiert.',hint:'Übernimm Piets Rechnung bis vor die Fehlerzeile und rechne ab dort selbst weiter.',
+    nextLabel:'ARGUS neu starten',next:reboot});
+  const reboot=()=>{S.finDone=true;save();SFX.reboot();humStop();box.replaceChildren(
+    h('h2',{id:'ctitle'},'ARGUS läuft wieder'),
+    h('div',{style:'margin-top:12px'},
+      h('p',{},'ARGUS startet neu. Das Vorzeichen stimmt wieder. Das Licht geht an, alle Türen springen auf.'),
+      h('div',{class:'clue'},h('b',{},'Fall gelöst'),h('p',{style:'margin:6px 0 0'},'Ein einziges falsches Vorzeichen in Piets Preisformel hat das ganze Haus lahmgelegt. Und du hast es gefunden.'))),
+    h('div',{class:'actions'},h('button',{class:'btn primary',type:'button',onclick:()=>{$('#card').close();finish()}},'Zur Auswertung')))};
+  step1();
+}
+
+function finish(){
+  S.done=true;clearInterval(tick);
+  const R=buildResult();
+  if(!S.preview){wipe();saveLast(R)}
+  if(!S.timeout)setTimeout(SFX.win,300);
+  const e=$('#end');e.replaceChildren();
+  const duel=S.mode==='duel';
+  let head;
+  if(duel){
+    const [a,b]=S.scores;
+    head=a===b?'Unentschieden!':`${teamName(a>b?0:1)} gewinnt!`;
+  }else head=S.timeout?'Die Zeit ist um.':'Du bist draußen!';
+  e.append(h('h1',{},head),
+    h('p',{},S.timeout?`Der Notstrom war leer. Gekommen bis: ${lvl().room}. Frau Tan hat von außen aufgeschlossen.`:'Frau Tan wartet am Ausgang. Das Preisupdate wird morgen neu geschrieben, diesmal mit Probe.'),
+    duel?h('div',{style:'display:flex;gap:24px;flex-wrap:wrap'},[0,1].map(i=>h('div',{},h('div',{style:'color:var(--mute)'},teamName(i)),h('div',{class:'big'},String(S.scores[i])))))
+        :h('div',{},h('div',{style:'color:var(--mute)'},`Punkte, Zeit ${mmss(S.t)}`),h('div',{class:'big'},String(S.scores[0]))));
+  const rows=LEVELS.map((L,i)=>{
+    if(L.bonus||!allowed(i))return null;
+    const n=L.puzzles.length;
+    const ss=L.puzzles.map(p=>S.stats[p.id]||{});
+    const first=ss.filter(x=>x.first).length,st=roomStatus(i),[tag,lab]=st?STATUS[st]:['tagoff','nicht erreicht'];
+    return h('tr',{},h('td',{},h('b',{},L.room),h('br'),h('span',{style:'color:var(--mute);font-size:15px'},L.topic)),
+      h('td',{},`${first} von ${n} gleich richtig`),
+      h('td',{class:'stars',style:'font-size:20px;letter-spacing:2px'},'★'.repeat(S.stars[i]||0)+'☆'.repeat(3-(S.stars[i]||0))),
+      h('td',{},h('span',{class:tag},lab)));
+  });
+  const BL=LEVELS.find(l=>l.bonus),bs=BL?BL.puzzles.filter(p=>S.stats[p.id]&&S.stats[p.id].solved).length:0;
+  if(bs>0)rows.push(h('tr',{},h('td',{},h('b',{},BL.room+' (Bonus)'),h('br'),h('span',{style:'color:var(--mute);font-size:15px'},BL.topic)),h('td',{},`${bs} von ${BL.puzzles.length} gelöst`),h('td',{},'Doppelte Punkte'),h('td',{},h('span',{class:'tagok'},'Extra'))));
+  e.append(h('h2',{style:'margin-top:26px;font-size:28px'},'Was schon sitzt'),
+    h('table',{class:'res'},h('thead',{},h('tr',{},h('th',{},'Raum und Thema'),h('th',{},'Ergebnis'),h('th',{},'Sterne'),h('th',{},'Einschätzung'))),h('tbody',{},rows)),
+    h('p',{style:'color:var(--mute)'},'"Gleich richtig" heißt: ohne Tipp und ohne Fehlversuch. Wo "Noch üben" steht, lohnt sich eine zweite Runde. Die Zahlen sind dann neu.'),
+    h('h2',{style:'margin-top:26px;font-size:28px'},'Vorzeichen-Check'),
+    h('div',{class:'argus'},duel
+      ?`ERKANNTE VORZEICHENFEHLER\n${teamName(0)}: ${S.signErr[0]}\n${teamName(1)}: ${S.signErr[1]}`
+      :S.signErr[0]===0?'ERKANNTE VORZEICHENFEHLER: 0\nSauber. Mit dir wäre ARGUS gar nicht erst ausgefallen.'
+      :`ERKANNTE VORZEICHENFEHLER: ${S.signErr[0]}\nGenau dieser Fehler hat ARGUS lahmgelegt. Achte beim Umstellen und beim Klammer auflösen besonders darauf.`),
+    h('p',{style:'color:var(--mute);margin-top:12px'},(()=>{const mains=playable().filter(i=>!LEVELS[i].bonus);
+      return `Türcodes im ersten Versuch geknackt: ${mains.filter(i=>S.codes[i]&&S.codes[i].done&&!S.codes[i].skipped&&S.codes[i].tries===0).length} von ${mains.length}.`})()),
+    h('h2',{style:'margin-top:26px;font-size:28px'},'Nachweis für die Lehrkraft'),
+    h('p',{style:'color:var(--mute)'},R.duel?'Prüft eure Teamnamen. Dann könnt ihr die Karte drucken oder als PDF speichern, oder ihr schickt den Prüfcode.':'Trag deinen Namen ein. Dann kannst du die Karte drucken oder als PDF speichern, oder du schickst den Prüfcode.'),
+    proofCard(R),
+    h('div',{class:'startrow'},h('button',{class:'btn primary',type:'button',onclick:()=>{show('intro');introState()}},'Nochmal spielen')),
+    h('p',{class:'legal'},LICENSE));
+  show('end');
+}
+
+/* ================= LEHRKRAFT-MODUS ================= */
+/* Zugang: Titel (Startseite) oder Raumname (im Spiel) 1,5 Sekunden gedrückt halten, oder Strg+Umschalt+L. Dann PIN.
+   Einstellungen liegen im Gerät und lassen sich als Klassen-Link (#k=...) auf alle Geräte übertragen. */
+const CFGKEY='technova-cfg';
+const CFG0={kurs:'E',rooms:LEVELS.map(()=>true),limit:0,same:false,code:'',pin:'1234',sound:'on'};
+const LIMITS=[0,20,30,45,60,90];
+function cleanCfg(c){
+  const o={...CFG0,...(c&&typeof c==='object'?c:{})};
+  o.kurs=o.kurs==='G'?'G':'E';
+  o.rooms=LEVELS.map((L,i)=>Array.isArray(o.rooms)?o.rooms[i]!==false:true);
+  if(!o.rooms.some((r,i)=>r&&!LEVELS[i].bonus))o.rooms=CFG0.rooms.slice();
+  o.limit=LIMITS.includes(Number(o.limit))?Number(o.limit):0;
+  o.code=String(o.code||'').toUpperCase().replace(/[^A-Z0-9-]/g,'').slice(0,12);
+  o.same=!!o.same&&!!o.code;
+  o.pin=/^\d{4,8}$/.test(String(o.pin))?String(o.pin):'1234';
+  o.sound=o.sound==='off'?'off':'on';
+  return o;
+}
+const enc=o=>btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+const dec=s=>JSON.parse(decodeURIComponent(escape(atob(s.replace(/-/g,'+').replace(/_/g,'/')))));
+function loadCfg(){
+  const m=location.hash.match(/[#&]k=([A-Za-z0-9_-]+)/);
+  if(m){try{const c=cleanCfg(dec(m[1]));try{localStorage.setItem(CFGKEY,JSON.stringify(c))}catch(e){}return c}catch(e){}}
+  try{const s=localStorage.getItem(CFGKEY);if(s)return cleanCfg(JSON.parse(s))}catch(e){}
+  return cleanCfg(null);
+}
+let CFG=loadCfg();
+const saveCfg=()=>{try{localStorage.setItem(CFGKEY,JSON.stringify(CFG))}catch(e){}};
+const randCode=()=>'TN'+Array.from({length:4},()=>'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[Math.floor(Math.random()*32)]).join('');
+function cfgSummary(c){
+  const mains=LEVELS.filter((L,i)=>!L.bonus&&c.rooms[i]).length,all=LEVELS.filter(L=>!L.bonus).length,bi=LEVELS.findIndex(L=>L.bonus);
+  return [c.kurs==='G'?'G-Kurs':'E-Kurs',
+    mains===all?'alle Räume':`${mains} von ${all} Räumen`,
+    c.kurs==='G'||!c.rooms[bi]?'ohne Bonusraum':null,
+    c.limit?`${c.limit} Minuten Zeitlimit`:null,
+    c.same?`Klassencode ${c.code}`:null,
+    c.sound==='off'?'ohne Ton':null].filter(Boolean).join(' · ');
+}
+function cfgNote(){
+  const d=JSON.stringify({...CFG,pin:''})!==JSON.stringify({...cleanCfg(null),pin:''});
+  const n=$('#cfgnote');n.hidden=!d;n.textContent=d?'Einstellungen der Lehrkraft: '+cfgSummary(CFG):'';
+}
+
+/* Spiel-Helfer, die die Einstellungen der laufenden Runde lesen */
+const gcfg=()=>(S&&S.cfg)||CFG;
+const isG=()=>gcfg().kurs==='G';
+const allowed=i=>!!(S&&S.preview)||(gcfg().rooms[i]&&!(LEVELS[i].bonus&&isG()));
+const playable=()=>LEVELS.map((L,i)=>i).filter(allowed);
+const limitLeft=()=>gcfg().limit?Math.max(0,gcfg().limit*60-S.t):null;
+function paintClock(){
+  const c=$('#clock'),left=limitLeft();
+  if(left==null){c.textContent=mmss(S.t);c.classList.remove('low');c.setAttribute('aria-label','Spielzeit');return}
+  c.textContent='Notstrom '+mmss(left);c.classList.toggle('low',left<=300);c.setAttribute('aria-label','Restzeit');
+}
+function timeUp(){
+  S.timeout=true;clearInterval(tick);save();
+  ['#panel','#lockdlg','#files','#card','#teacher'].forEach(q=>{if($(q).open)$(q).close()});
+  SFX.powerdown();humStop();
+  say('NOTSTROM LEER. ARGUS FÄHRT HERUNTER.');
+  showCard({title:'Notstrom leer',body:[h('p',{},'Die Zeit ist um. Das Notlicht flackert ein letztes Mal, dann schließt Frau Tan die Tür von außen auf.'),h('p',{},'Mal sehen, wie weit du gekommen bist.')],btn:'Zur Auswertung',onclose:finish});
+}
+
+/* Lösung eines Rätsels als kurzer Text */
+const fmtA=f=>{const v=f.a;if(f.frac)for(let d=2;d<=144;d++){const n=Math.round(v*d);if(Math.abs(n/d-v)<1e-9)return `${n}/${d}`}return fz(v)};
+function answerOf(p){
+  return p.parts.map(pt=>{
+    switch(pt.t){
+      case 'input':return pt.fields.map(f=>`${f.l} ${fmtA(f)}${f.u?' '+f.u:''}`).join(', ');
+      case 'choice':return `„${pt.o[pt.c]}“`;
+      case 'sort':return 'Reihenfolge: '+pt.items.map((t,i)=>`${i+1}. ${t}`).join(' / ');
+      case 'graph':return `Schnittpunkt (${fz(pt.a[0])} | ${fz(pt.a[1])})`;
+      case 'laser':return `m = ${fz(pt.m)}, b = ${fz(pt.b)}`;
+      case 'draw':return pt.lines.map(l=>`${l.tag}: ${yf(l.m,l.b)}`).join(', ')+`, Schnittpunkt (${fz(pt.a[0])} | ${fz(pt.a[1])})`;
+      case 'spot':return `Fehler in Zeile ${pt.err+1}`;
+      case 'dials':return `x = ${fz(pt.a[0])}, y = ${fz(pt.a[1])}`;
+      case 'scale':return `Waage: x = ${fz(pt.x)}`;
+      case 'probe':return pt.c===0?'Ja'+(pt.term&&!isG()?` (Probe im E-Kurs: ${pt.term.txt} = ${fz(pt.term.val)})`:''):`Nein, Gleichung ${pt.bad===1?'I':'II'} stimmt nicht`;
+    }
+    return '';
+  }).join(' · ');
+}
+const esc=s=>String(s).replace(/[&<>"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
+
+/* Lösungsblatt für einen Klassencode. Rechnet mit demselben Seed wie die Schülergeräte. */
+function openSheet(c){
+  const keep=S;let html='';
+  S={seed:'k:'+c.code,cfg:c};
+  try{
+    LEVELS.forEach((L,li)=>{
+      if(!allowed(li))return;
+      const D=L.bonus?null:genDoor(li);
+      html+=`<h2>${L.bonus?'Bonusraum: ':''}${esc(L.room)} <small>${esc(L.topic)}</small></h2><table>`
+        +L.puzzles.map(p0=>{const p=inst(p0);return `<tr><td><b>${esc(p.id)} ${esc(p.name)}</b></td><td>${esc(p.q)}</td><td>${esc(answerOf(p))}</td></tr>`}).join('')+'</table>'
+        +(D?`<p class="code"><b>Türcode (${fz(D.x)} | ${fz(D.y)})</b> · Codekarten: ${D.cards.map((cd,i)=>LET[i]+': '+esc(cd.txt)).join(' · ')}</p>`:'');
+    });
+    if(allowed(LEVELS.length-1)){
+      const R=mkR(S.seed,'finale'),W=worked(R,R.pick(['A','B']));
+      html+=`<h2>Finale</h2><table><tr><td><b>1. Ursache</b></td><td>Wer hat ARGUS lahmgelegt?</td><td>Niemand von den dreien: Piets Preisformel mit Vorzeichenfehler</td></tr><tr><td><b>2. Fehlerzeile</b></td><td>${W.lines.map((t,i)=>`${i+1}: ${esc(t)}`).join('<br>')}</td><td>Zeile ${W.err+1}</td></tr><tr><td><b>3. Freigabe-Code</b></td><td>${esc(W.lines[0])}</td><td>(${fz(W.x)} | ${fz(W.y)})</td></tr></table>`;
+    }
+  }finally{S=keep}
+  const doc=`<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Lösungsblatt TechNova ${esc(c.code)}</title><style>body{font:14px/1.45 system-ui,"Segoe UI",sans-serif;margin:24px;color:#111;background:#fff}h1{font-size:22px;margin:0 0 6px}h2{font-size:17px;margin:20px 0 6px;border-bottom:3px solid #FF7A1A;padding-bottom:2px}small{font-weight:400;color:#555}table{border-collapse:collapse;width:100%}td{border-bottom:1px solid #ccc;padding:5px 6px;vertical-align:top}td:first-child{width:18%}td:last-child{width:30%;font-weight:600}.code{background:#FFF1E5;padding:6px 8px;margin:6px 0 0}button{font:600 16px system-ui;padding:8px 16px;margin:10px 0}@media print{button{display:none}body{margin:0}h2{break-after:avoid}tr{break-inside:avoid}}</style></head><body><h1>Lösungsblatt „Nachtschicht bei TechNova“, Klassencode ${esc(c.code)}</h1><p>${esc(cfgSummary(c))}. Gilt nur für Geräte mit diesem Klassencode. Die Reihenfolge der Antwortmöglichkeiten ist auf jedem Gerät gemischt.</p><button onclick="print()">Drucken</button>${html}<p style="margin-top:22px;color:#555">${esc(LICENSE)}</p></body></html>`;
+  const blob=new Blob([doc],{type:'text/html'}),url=URL.createObjectURL(blob);
+  const w=window.open(url,'_blank');
+  if(!w){const a=h('a',{href:url,download:`Loesungsblatt_TechNova_${c.code}.html`});document.body.append(a);a.click();a.remove()}
+}
+
+function longPress(el,fn){
+  let t=null;
+  const stop=()=>{clearTimeout(t);t=null};
+  el.addEventListener('pointerdown',()=>{stop();t=setTimeout(()=>{t=null;fn()},1500)});
+  ['pointerup','pointerleave','pointercancel'].forEach(k=>el.addEventListener(k,stop));
+  el.addEventListener('contextmenu',e=>e.preventDefault());
+}
+const tClose=()=>h('button',{class:'btn small ghost',type:'button',onclick:()=>$('#teacher').close()},'Schließen');
+function askPin(pin,then){
+  const box=$('#tbody');
+  const inp=h('input',{type:'password',inputmode:'numeric',autocomplete:'off',maxlength:'8','aria-label':'PIN'});
+  const fb=h('div',{class:'fb','aria-live':'polite'});
+  const check=()=>{if(inp.value===pin)then();else{fb.className='fb bad';fb.textContent='Falsche PIN.';inp.value='';inp.focus()}};
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter')check()});
+  box.replaceChildren(
+    h('header',{},h('div',{},h('div',{class:'kicker'},'Nur für Lehrkräfte'),h('h2',{id:'ttitle'},'Lehrkraft-Modus')),tClose()),
+    h('p',{class:'pstory'},'Bitte PIN eingeben.'),
+    h('label',{class:'frow',style:'max-width:260px'},h('span',{class:'flab'},'PIN'),inp),
+    fb,h('div',{class:'actions'},h('button',{class:'btn primary',type:'button',onclick:check},'Öffnen')));
+  if(!$('#teacher').open)$('#teacher').showModal();
+  inp.focus();
+}
+function openTeacher(){
+  if(S&&!$('#game').hidden)askPin(gcfg().pin,teacherHelp);
+  else if(!$('#intro').hidden)askPin(CFG.pin,teacherSetup);
+}
+
+/* Einstellungen auf der Startseite */
+function teacherSetup(){
+  const c=JSON.parse(JSON.stringify(CFG));
+  if(!c.code)c.code=randCode();
+  const box=$('#tbody'),fb=h('div',{class:'fb','aria-live':'polite'});
+  const choice=(type,name,checked,onchange,label,desc)=>{
+    const inp=h('input',{type,name});inp.checked=checked;inp.addEventListener('change',()=>{onchange(inp.checked);upd()});
+    return h('label',{class:'tchoice'},inp,h('span',{},h('b',{},label),desc?h('small',{},desc):null));
+  };
+  const kurs=h('div',{class:'tgrid'},
+    choice('radio','kurs',c.kurs==='E',v=>{if(v)c.kurs='E'},'E-Kurs','Alle Regeln wie vorgesehen. Tipps kosten 25 Punkte.'),
+    choice('radio','kurs',c.kurs==='G',v=>{if(v)c.kurs='G'},'G-Kurs','Erster Tipp pro Rätsel kostenlos. In großen Räumen eine Codekarte weniger nötig. Türdisplay zeichnet in allen Räumen. Kein Bonusraum.'));
+  let no=0;
+  const rooms=h('div',{class:'tgrid'},LEVELS.map((L,i)=>choice('checkbox','',c.rooms[i],v=>{c.rooms[i]=v},(L.bonus?'Bonus: ':`${++no}. `)+L.room,L.topic)));
+  const sel=h('select',{class:'tsel','aria-label':'Zeitlimit'},LIMITS.map(v=>h('option',{value:v},v?`${v} Minuten`:'Kein Zeitlimit')));
+  sel.value=String(c.limit);sel.addEventListener('change',()=>{c.limit=Number(sel.value);upd()});
+  const code=h('input',{class:'tin',maxlength:'12','aria-label':'Klassencode'});code.value=c.code;
+  code.addEventListener('input',()=>{c.code=code.value.toUpperCase().replace(/[^A-Z0-9-]/g,'');upd()});
+  const nums=h('div',{class:'tgrid'},
+    choice('radio','same',!c.same,v=>{if(v)c.same=false},'Jedes Gerät eigene Zahlen','Gegen Abschreiben. Lösungen siehst du über die Lehrkraft-Hilfe im Spiel.'),
+    choice('radio','same',c.same,v=>{if(v)c.same=true},'Alle Geräte gleiche Zahlen','Gut zum Vergleichen und Besprechen. Dazu gibt es ein Lösungsblatt.'));
+  const snd=h('div',{class:'tgrid'},
+    choice('radio','sound',c.sound!=='off',v=>{if(v)c.sound='on'},'Töne an','Alarm, Türen, Zahlenrad, leises Brummen. Jedes Gerät kann selbst stummschalten.'),
+    choice('radio','sound',c.sound==='off',v=>{if(v)c.sound='off'},'Töne aus','Kein Ton auf allen Geräten. Gut, wenn viele Tablets in einem Raum laufen.'));
+  const pin=h('input',{class:'tin',type:'text',inputmode:'numeric',maxlength:'8','aria-label':'PIN'});pin.value=c.pin;
+  pin.addEventListener('input',()=>{c.pin=pin.value.replace(/\D/g,'');upd()});
+  const link=h('input',{class:'tlink',readonly:true,'aria-label':'Klassen-Link'});
+  link.addEventListener('focus',()=>link.select());
+  const local=/^(file|data|blob):/.test(location.protocol);
+  const bSave=h('button',{class:'btn primary',type:'button'},'Auf diesem Gerät speichern');
+  const bLink=h('button',{class:'btn',type:'button'},'Klassen-Link kopieren');
+  const bSheet=h('button',{class:'btn',type:'button'},'Lösungsblatt öffnen');
+  const bWipe=h('button',{class:'btn ghost',type:'button'},'Spielstand auf diesem Gerät löschen');
+  const bReset=h('button',{class:'btn ghost',type:'button'},'Standard wiederherstellen');
+  const sumP=h('p',{class:'cfgnote'});
+  const codeRow=h('div',{class:'fields',style:'margin-top:8px'},h('label',{class:'frow'},h('span',{class:'flab'},'Klassencode'),code));
+  function valid(){
+    if(!c.rooms.some((r,i)=>r&&!LEVELS[i].bonus))return 'Wähle mindestens einen Raum aus.';
+    if(c.same&&!/^[A-Z0-9-]{3,12}$/.test(c.code))return 'Der Klassencode braucht 3 bis 12 Zeichen (Buchstaben, Ziffern, Bindestrich).';
+    if(!/^\d{4,8}$/.test(c.pin))return 'Die PIN braucht 4 bis 8 Ziffern.';
+    return null;
+  }
+  function upd(){
+    const err=valid();
+    codeRow.hidden=!c.same;
+    [bSave,bLink].forEach(b=>b.disabled=!!err);bSheet.disabled=!!err||!c.same;
+    const notes=[];
+    if(!c.rooms[LEVELS.length-1])notes.push('Ohne Serverraum gibt es kein Finale.');
+    if(c.kurs==='G'&&c.rooms[LEVELS.findIndex(L=>L.bonus)])notes.push('Im G-Kurs ist der Bonusraum ausgeschaltet.');
+    sumP.textContent=err||(cfgSummary(cleanCfg(c))+(notes.length?'. '+notes.join(' '):''));
+    sumP.classList.toggle('bad',!!err);
+    link.value=err?'':location.href.split('#')[0]+'#k='+enc(cleanCfg(c));
+  }
+  const commit=()=>{CFG=cleanCfg(c);saveCfg();cfgNote();paintSound()};
+  bSave.addEventListener('click',()=>{commit();fb.className='fb good';fb.textContent='Gespeichert. Gilt ab dem nächsten Spielstart auf diesem Gerät.'});
+  bLink.addEventListener('click',async()=>{
+    commit();
+    try{await navigator.clipboard.writeText(link.value);fb.className='fb good';fb.textContent='Link kopiert. Wer ihn öffnet, bekommt diese Einstellungen.'}
+    catch(e){link.focus();fb.className='fb good';fb.textContent='Kopieren ging nicht automatisch. Der Link ist markiert, kopiere ihn mit Strg+C.'}
+  });
+  bSheet.addEventListener('click',()=>{commit();openSheet(CFG)});
+  bWipe.addEventListener('click',()=>{if(confirm('Den gespeicherten Spielstand auf diesem Gerät löschen?')){wipe();introState();fb.className='fb good';fb.textContent='Spielstand gelöscht.'}});
+  bReset.addEventListener('click',()=>{CFG=cleanCfg({pin:c.pin});saveCfg();cfgNote();teacherSetup()});
+  const sec=(t,...k)=>h('div',{class:'tsec'},h('h3',{},t),...k);
+  box.replaceChildren(
+    h('header',{},h('div',{},h('div',{class:'kicker'},'Nur für Lehrkräfte'),h('h2',{id:'ttitle'},'Einstellungen')),tClose()),
+    sumP,
+    sec('Vorschau: Räume direkt ansehen',
+      h('p',{class:'tipline'},'Springt ohne Durchspielen in einen Raum. In der Vorschau gibt es unten die Knöpfe „Lösungen“ und „Raum überspringen“. Es wird nichts gespeichert. Die Vorschau nutzt die zuletzt gespeicherten Einstellungen.'),
+      h('div',{class:'pvgrid'},(()=>{let n=0;return LEVELS.map((L,i)=>h('button',{class:'btn small',type:'button',onclick:()=>startPreview(i)},L.bonus?`Bonus: ${L.room}`:`${++n}. ${L.room}`))})(),
+        h('button',{class:'btn small',type:'button',onclick:()=>startPreview('fin')},'Finale'))),
+    sec('Kurs',kurs),
+    sec('Räume',rooms),
+    sec('Zeitlimit',h('p',{class:'tipline'},'Läuft als Notstrom-Countdown. Ist er leer, endet das Spiel mit der Auswertung.'),sel),
+    sec('Aufgaben',nums,codeRow),
+    sec('Ton',snd),
+    sec('PIN für den Lehrkraft-Modus',h('label',{class:'frow',style:'max-width:260px'},h('span',{class:'flab'},'PIN'),pin)),
+    sec('Auf alle Geräte übertragen',
+      h('p',{class:'tipline'},'Der Klassen-Link enthält alle Einstellungen. Teile ihn zum Beispiel über Moodle, fobizz oder als QR-Code. Wer ihn öffnet, spielt mit diesen Einstellungen.'
+        +(local?' Hinweis: Die Datei läuft gerade lokal auf diesem Gerät. Der Link funktioniert erst, wenn die Datei online liegt, zum Beispiel auf GitHub Pages.':'')),
+      link),
+    fb,
+    h('div',{class:'actions'},bSave,bLink,bSheet),
+    h('div',{class:'actions'},bWipe,bReset),
+    sec('Prüfcode prüfen',verifyBox()));
+  upd();
+  if(!$('#teacher').open)$('#teacher').showModal();
+}
+
+/* Hilfe im laufenden Spiel: Lösungen des Raums, Tür öffnen, Zeit verlängern */
+function teacherHelp(){
+  const L=lvl(),hv=haveCards(),box=$('#tbody'),fb=h('div',{class:'fb','aria-live':'polite'});
+  const D=L.bonus?null:genDoor(S.lvl);
+  const rows=L.puzzles.map((p0,i)=>{const p=inst(p0);
+    return h('tr',{},h('td',{},h('b',{},p.name),h('br'),h('span',{class:hv[i]?'tagok':'tagmid'},hv[i]?'gelöst':'offen')),h('td',{},answerOf(p)))});
+  const acts=[h('button',{class:'btn',type:'button',onclick:()=>{
+    $('#teacher').close();
+    const r=S.codes[S.lvl]||(S.codes[S.lvl]={tries:0});r.done=true;r.skipped=true;
+    say('LEHRKRAFT-FREIGABE. Die Tür öffnet sich.');leaveRoom();
+  }},'Tür für diese Gruppe öffnen')];
+  if(gcfg().limit)acts.push(h('button',{class:'btn',type:'button',onclick:()=>{S.cfg.limit+=10;paintClock();save();fb.className='fb good';fb.textContent='10 Minuten mehr Notstrom.'}},'Zeit +10 Minuten'));
+  box.replaceChildren(...[
+    h('header',{},h('div',{},h('div',{class:'kicker'},`${L.room}, ${L.topic}`),h('h2',{id:'ttitle'},'Lehrkraft-Hilfe')),tClose()),
+    h('p',{class:'pstory'},'Die Lösungen gelten nur für dieses Gerät. Die Reihenfolge der Antwortmöglichkeiten ist hier gemischt.'),
+    D?h('div',{class:'clue'},h('b',{},`Türcode (${fz(D.x)} | ${fz(D.y)})`),h('p',{style:'margin:6px 0 0'},`Nötig: ${needCount()} von ${L.puzzles.length} Codekarten. Gefunden: ${hv.filter(Boolean).length}.`)):null,
+    h('table',{class:'res'},h('tbody',{},rows)),
+    fb,h('div',{class:'actions'},acts)].filter(Boolean));
+  if(!$('#teacher').open)$('#teacher').showModal();
+}
+/* Vorschau: Lehrkraft springt direkt in einen Raum oder ins Finale.
+   Nichts wird gespeichert, gespeicherte Spielstände und Nachweise auf dem Gerät bleiben unberührt. */
+function startPreview(i){
+  $('#teacher').close();
+  const fin=i==='fin',li=fin?LEVELS.length-1:i;
+  S=newState('solo',['Vorschau','']);S.preview=true;
+  S.cfg={...JSON.parse(JSON.stringify(CFG)),rooms:LEVELS.map(()=>true),limit:0};
+  if(S.cfg.same)S.seed='k:'+S.cfg.code;
+  S.lvl=li;
+  /* Beweise und Gegenstände aus den Räumen davor, damit Fallakte und Inventar stimmen */
+  S.clues=LEVELS.slice(0,fin?LEVELS.length:li).filter(L=>!L.bonus).map(L=>L.clue);
+  for(const k in ITEMS){const from=LEVELS.findIndex(L=>L.puzzles.some(p=>p.id===ITEMS[k].from));if(fin||from<li)S.inv.push(k)}
+  show('game');startLevel();startTick();
+  if(fin)finale();
+}
+function skipRoom(){
+  $('#pvNext').disabled=true;
+  const r=S.codes[S.lvl]||(S.codes[S.lvl]={tries:0});r.done=true;r.skipped=true;
+  say('VORSCHAU: Raum übersprungen.');leaveRoom();
+}
+$('#pvNext').addEventListener('click',skipRoom);
+$('#pvHelp').addEventListener('click',teacherHelp);
+
+longPress($('.titleblock h1'),openTeacher);
+longPress($('#room'),openTeacher);
+document.addEventListener('keydown',e=>{if(e.ctrlKey&&e.shiftKey&&(e.key==='L'||e.key==='l')){e.preventDefault();openTeacher()}});
+
+/* ================= NACHWEIS UND PRÜFCODE ================= */
+/* Der Prüfcode enthält alle Ergebnisse als Bits plus eine 16-Bit-Prüfsumme über Namen und Ergebnisse.
+   Die Lehrkraft gibt Name und Code im Lehrkraft-Modus ein und sieht die Ergebnisse. Ohne Server. */
+const B32='23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+const SALT='TechNova|19:58|Vorzeichen';
+const DAY0=Date.UTC(2026,0,1);
+const LASTKEY='technova-last';
+const STATUS=[['tagoff','nicht gespielt'],['tagno','Noch üben'],['tagmid','Fast sicher'],['tagok','Sitzt']];
+const mainRooms=()=>LEVELS.map((L,i)=>i).filter(i=>!LEVELS[i].bonus);
+const normName=s=>String(s||'').trim().toLowerCase().replace(/\s+/g,' ');
+/* 0 nicht gespielt, 1 noch üben, 2 fast sicher, 3 sitzt */
+function roomStatus(i){
+  const L=LEVELS[i],seen=S.seen?S.seen.includes(i):L.puzzles.some(p=>S.stats[p.id]);
+  if(!allowed(i)||!seen)return 0;
+  const ss=L.puzzles.map(p=>S.stats[p.id]||{}),n=L.puzzles.length;
+  const solved=ss.filter(x=>x.solved).length,ratio=ss.filter(x=>x.first).length/n;
+  return solved<n-1||ratio<.4?1:ratio<.8?2:3;
+}
+function buildResult(){
+  const mains=mainRooms(),bi=LEVELS.findIndex(L=>L.bonus),duel=S.mode==='duel';
+  return{duel,names:S.names.slice(),name:duel?S.names.join(' & '):'',
+    date:Math.max(0,Math.floor((Date.now()-DAY0)/864e5))%2048,kurs:gcfg().kurs,scores:S.scores.slice(),
+    rooms:mains.map(roomStatus),
+    bonus:LEVELS[bi].puzzles.filter(p=>S.stats[p.id]&&S.stats[p.id].solved).length,
+    sign:duel?S.signErr[0]+S.signErr[1]:S.signErr[0],
+    min:Math.round(S.t/60),timeout:!!S.timeout,fin:!!S.finDone,
+    skipped:mains.filter(i=>S.codes[i]&&S.codes[i].skipped).length,
+    codesFirst:mains.filter(i=>S.codes[i]&&S.codes[i].done&&!S.codes[i].skipped&&S.codes[i].tries===0).length,
+    klasse:gcfg().same?gcfg().code:''};
+}
+const saveLast=R=>{try{localStorage.setItem(LASTKEY,JSON.stringify(R))}catch(e){}};
+const loadLast=()=>{try{const s=localStorage.getItem(LASTKEY);return s?JSON.parse(s):null}catch(e){return null}};
+/* Feldreihenfolge und Bitbreiten. Einzeln: 16 Zeichen, Duell: 19 Zeichen. */
+const fieldsOf=duel=>[['duel',1],['date',11],['kursG',1],['s0',13],...(duel?[['s1',13]]:[]),
+  ...mainRooms().map((_,k)=>['r'+k,2]),['bonus',3],['sign',5],['min',7],['timeout',1],['fin',1],['skipped',3],['codesFirst',3]];
+const cap=(v,w)=>Math.max(0,Math.min(Number(v)||0,2**w-1));
+const chkOf=(name,payload)=>hash(normName(name)+'|'+payload.toString(36)+'|'+SALT)&0xFFFF;
+function packProof(R){
+  const val={duel:R.duel?1:0,date:R.date,kursG:R.kurs==='G'?1:0,s0:R.scores[0],s1:R.scores[1],bonus:R.bonus,sign:R.sign,min:R.min,
+    timeout:R.timeout?1:0,fin:R.fin?1:0,skipped:R.skipped,codesFirst:R.codesFirst};
+  R.rooms.forEach((s,k)=>val['r'+k]=s);
+  let v=0n,bits=0;
+  for(const [k,w] of fieldsOf(R.duel)){v=(v<<BigInt(w))|BigInt(cap(val[k],w));bits+=w}
+  v=(v<<16n)|BigInt(chkOf(R.name,v));bits+=16;
+  let s='';for(let i=0;i<Math.ceil(bits/5);i++){s=B32[Number(v&31n)]+s;v>>=5n}
+  return s.match(/.{1,4}/g).join('-');
+}
+function unpackProof(code,name){
+  const c=String(code).toUpperCase().replace(/[^0-9A-Z]/g,'');
+  if(c.length!==16&&c.length!==19)return{err:'Der Code hat nicht die richtige Länge. Er hat 16 Zeichen, im Duell 19.'};
+  let v=0n;
+  for(const ch of c){const d=B32.indexOf(ch);if(d<0)return{err:`Das Zeichen „${ch}“ kommt in Prüfcodes nicht vor. Prüfcodes enthalten nie 0, 1, O oder I.`};v=(v<<5n)|BigInt(d)}
+  const chk=Number(v&0xFFFFn);v>>=16n;
+  const payload=v,duel=c.length===19,F=fieldsOf(duel),val={};
+  for(let i=F.length-1;i>=0;i--){const [k,w]=F[i];val[k]=Number(v&BigInt(2**w-1));v>>=BigInt(w)}
+  if(val.duel!==(duel?1:0))return{err:'Der Code ist beschädigt.'};
+  const R={duel,date:val.date,kurs:val.kursG?'G':'E',scores:[val.s0,val.s1||0],rooms:mainRooms().map((_,k)=>val['r'+k]),
+    bonus:val.bonus,sign:val.sign,min:val.min,timeout:!!val.timeout,fin:!!val.fin,skipped:val.skipped,codesFirst:val.codesFirst};
+  return{R,ok:chkOf(name,payload)===chk};
+}
+const fmtDay=d=>new Date(DAY0+d*864e5).toLocaleDateString('de-DE',{timeZone:'UTC'});
+
+/* Die Karte. editable: Name eintragen, drucken, Code kopieren. */
+function proofCard(R){
+  const codeEl=h('div',{class:'pcode','aria-live':'polite'}),printName=h('p',{class:'pname-print'});
+  const inp=h('input',{maxlength:'40',autocomplete:'off','aria-label':R.duel?'Teamnamen':'Dein Name'});inp.value=R.name||'';
+  const fb=h('div',{class:'fb noprint','aria-live':'polite'});
+  const paint=()=>{const ok=!!R.name.trim();codeEl.textContent=ok?packProof(R):'Erst Namen eintragen';codeEl.classList.toggle('empty',!ok);printName.textContent=R.name;bPrint.disabled=bCopy.disabled=!ok};
+  inp.addEventListener('input',()=>{R.name=inp.value;paint();saveLast(R)});
+  const bPrint=h('button',{class:'btn primary',type:'button',onclick:()=>{card.classList.add('printme');window.print();setTimeout(()=>card.classList.remove('printme'),500)}},'Drucken oder als PDF speichern');
+  const bCopy=h('button',{class:'btn',type:'button',onclick:async()=>{
+    try{await navigator.clipboard.writeText(`${R.name}: ${codeEl.textContent}`);fb.className='fb good noprint';fb.textContent='Name und Prüfcode kopiert.'}
+    catch(e){fb.className='fb noprint';fb.textContent='Kopieren ging nicht. Schreib den Code ab oder mach ein Foto.'}}},'Prüfcode kopieren');
+  const mains=mainRooms();
+  const meta=[fmtDay(R.date),R.duel?'Duell':'Einzeln',R.kurs==='G'?'G-Kurs':'E-Kurs',`${R.min} Minuten`,R.klasse?`Klassencode ${R.klasse}`:null].filter(Boolean).join(' · ');
+  const badges=[R.fin?h('span',{class:'tagok'},'Fall gelöst'):null,R.timeout?h('span',{class:'tagmid'},'Zeit abgelaufen'):null].filter(Boolean);
+  const card=h('section',{class:'proof'},
+    h('div',{class:'proofhead'},h('b',{},'NACHWEIS'),h('span',{},'Nachtschicht bei TechNova · Lineare Gleichungssysteme')),
+    h('label',{class:'frow pname noprint'},h('span',{class:'flab'},R.duel?'Teams':'Name'),inp),printName,
+    h('p',{class:'pmeta'},meta),
+    h('div',{class:'pscore'},R.duel
+      ?R.names.map((n,i)=>h('div',{},h('small',{},n),h('b',{},String(R.scores[i]))))
+      :[h('div',{},h('small',{},'Punkte'),h('b',{},String(R.scores[0])))],badges),
+    h('table',{class:'res'},h('tbody',{},mains.map((i,k)=>h('tr',{},h('td',{},h('b',{},LEVELS[i].room),h('br'),h('span',{class:'ptopic'},LEVELS[i].topic)),h('td',{},h('span',{class:STATUS[R.rooms[k]][0]},STATUS[R.rooms[k]][1])))))),
+    h('p',{class:'pmeta'},`Vorzeichenfehler: ${R.sign} · Türcodes im 1. Versuch: ${R.codesFirst} · Bonus-Rätsel: ${R.bonus}`+(R.skipped?` · Lehrkraft-Hilfe: ${R.skipped} ${R.skipped===1?'Tür':'Türen'} geöffnet`:'')),
+    h('div',{class:'pcodebox'},h('small',{},'Prüfcode'),codeEl),
+    h('div',{class:'actions noprint'},bPrint,bCopy),fb);
+  paint();
+  return card;
+}
+function showLastProof(){
+  const R=loadLast();if(!R)return;
+  $('#end').replaceChildren(h('h1',{},'Letzter Nachweis'),h('p',{style:'color:var(--mute)'},'Dieser Nachweis ist auf diesem Gerät gespeichert. Ein neues Spiel ersetzt ihn.'),proofCard(R),
+    h('div',{class:'startrow'},h('button',{class:'btn',type:'button',onclick:()=>{show('intro');introState()}},'Zurück zum Start')));
+  show('end');
+}
+$('#lastproof').addEventListener('click',showLastProof);
+
+/* Prüfen im Lehrkraft-Modus */
+function verifyBox(){
+  const nm=h('input',{class:'tin',style:'width:100%','aria-label':'Name auf der Karte'}),cd=h('input',{class:'tin',style:'width:100%;text-transform:uppercase;font-family:ui-monospace,Consolas,monospace','aria-label':'Prüfcode'});
+  const out=h('div',{'aria-live':'polite'});
+  const run=()=>{
+    out.replaceChildren();
+    if(!nm.value.trim()||!cd.value.trim()){out.append(h('p',{class:'fb bad'},'Bitte Name und Prüfcode eingeben.'));return}
+    const r=unpackProof(cd.value,nm.value);
+    if(r.err){out.append(h('p',{class:'fb bad'},r.err));return}
+    if(!r.ok){out.append(h('p',{class:'fb bad'},'Der Code passt nicht zu diesem Namen. Entweder ist der Name anders geschrieben als auf der Karte, ein Zeichen ist vertippt, oder der Code wurde verändert.'));return}
+    const R=r.R,mains=mainRooms();
+    out.append(h('p',{class:'fb good'},`Gültig. Gespielt am ${fmtDay(R.date)}, ${R.duel?'Duell':'Einzeln'}, ${R.kurs==='G'?'G-Kurs':'E-Kurs'}, ${R.min} Minuten.`),
+      h('p',{},R.duel?`Punkte: ${R.scores[0]} und ${R.scores[1]}`:`Punkte: ${R.scores[0]}`,R.fin?' · Fall gelöst':'',R.timeout?' · Zeit abgelaufen':''),
+      h('table',{class:'res'},h('tbody',{},mains.map((i,k)=>h('tr',{},h('td',{},LEVELS[i].room),h('td',{},h('span',{class:STATUS[R.rooms[k]][0]},STATUS[R.rooms[k]][1])))))),
+      h('p',{class:'tipline'},`Vorzeichenfehler: ${R.sign} · Türcodes im 1. Versuch: ${R.codesFirst} · Bonus-Rätsel: ${R.bonus} · Lehrkraft-Hilfe: ${R.skipped}`));
+  };
+  [nm,cd].forEach(i=>i.addEventListener('keydown',e=>{if(e.key==='Enter')run()}));
+  return h('div',{},h('p',{class:'tipline'},'Name genau so eintragen wie auf der Karte. Groß- und Kleinschreibung ist egal.'),
+    h('div',{class:'tgrid'},h('label',{},h('span',{class:'flab'},'Name'),nm),h('label',{},h('span',{class:'flab'},'Prüfcode'),cd)),
+    h('div',{class:'actions'},h('button',{class:'btn primary',type:'button',onclick:run},'Code prüfen')),out);
+}
+
+/* ================= EVENTS ================= */
+$('#scene').addEventListener('click',ev=>{
+  const hot=ev.target.closest('.hot');
+  if(hot){openPuzzle(Number(hot.dataset.i));return}
+  if(ev.target.closest('#door'))useDoor();
+});
+$('#scene').addEventListener('keydown',ev=>{
+  if(ev.key!=='Enter'&&ev.key!==' ')return;
+  const hot=ev.target.closest&&ev.target.closest('.hot');
+  if(hot){ev.preventDefault();openPuzzle(Number(hot.dataset.i));return}
+  if(ev.target.closest&&ev.target.closest('#door')){ev.preventDefault();useDoor()}
+});
+$('#btnFiles').addEventListener('click',openFiles);
+$('#fclose').addEventListener('click',()=>$('#files').close());
+$('#btnQuit').addEventListener('click',()=>{save();clearInterval(tick);show('intro');introState()});
+
+let mode='solo';
+function setMode(m){mode=m;$('#mSolo').setAttribute('aria-pressed',m==='solo');$('#mDuel').setAttribute('aria-pressed',m==='duel');$('#teams').hidden=(m!=='duel')}
+$('#mSolo').addEventListener('click',()=>setMode('solo'));
+$('#mDuel').addEventListener('click',()=>setMode('duel'));
+$('#start').addEventListener('click',()=>{
+  if(load()&&!confirm('Es gibt einen gespeicherten Spielstand. Neu starten und ihn löschen?'))return;
+  wipe();startGame(mode);
+});
+$('#resume').addEventListener('click',()=>{
+  const s=load();if(!s)return;S=s;S.codes=S.codes||{};S.inv=S.inv||[];S.used=S.used||{};S.cfg=S.cfg||cleanCfg(null);show('game');renderHud();renderScene();say(lvl().intro);startTick();
+});
+function introState(){const s=load();$('#resume').hidden=!(s&&!s.done&&!s.timeout);$('#lastproof').hidden=!loadLast();cfgNote()}
+
+/* ================= START ================= */
+$('#herosvg').innerHTML=sceneSvg(0,false,null);
+$('#legal').textContent=LICENSE;
+$('#cast').replaceChildren(...CAST.map(k=>personCard(k,false)));
+introState();
+paintSound();
+})();
+</script>
+</body>
+</html>
