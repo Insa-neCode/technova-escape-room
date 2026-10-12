@@ -11,8 +11,11 @@ Samstagabend im Elektronikmarkt TechNova: Das Sicherheitssystem ARGUS hat alle T
 - 7 Räume von linearen Funktionen bis zum Prüfungsstil (Teil A), dazu ein Bonusraum und ein Finale
 - Gleichsetzen, Einsetzen, Additionsverfahren, grafisches Lösen, Lösungsvielfalt, Sachaufgaben
 - Zahlen werden pro Runde neu erzeugt, Rückmeldungen erkennen typische Fehler (vor allem Vorzeichenfehler)
+- Jede Tür öffnet sich mit drei Codekarten (Geraden durch den Türcode). Wer alle Rätsel eines Raums löst, kann den Code am Türdisplay ablesen.
+- Interaktive Rätsel: Balkenwaage, Geraden einzeichnen, Kassenbons modellieren, Fehlerzeile finden, Zahlenschlösser
+- Gegenstände verbinden die Räume (Taschenlampe, versteckte UV-Lampe, Zugangskarte), mit Lageplan zum Zurückgehen
 - Einzelspiel oder Duell zweier Teams an einem Gerät
-- Nachweis-Karte mit Prüfcode am Ende
+- Nachweis-Karte mit Prüfcode am Ende, Üben einzelner Räume direkt aus der Auswertung
 
 ## Für Lehrkräfte
 
