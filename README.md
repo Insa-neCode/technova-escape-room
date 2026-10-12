@@ -15,11 +15,11 @@ Samstagabend im Elektronikmarkt TechNova: Das Sicherheitssystem ARGUS hat alle T
 - Interaktive Rätsel: Balkenwaage, Geraden einzeichnen, Kassenbons modellieren, Fehlerzeile finden, Zahlenschlösser
 - Gegenstände verbinden die Räume (Taschenlampe, versteckte UV-Lampe, Zugangskarte), mit Lageplan zum Zurückgehen
 - Einzelspiel oder Duell zweier Teams an einem Gerät
-- Nachweis-Karte mit Prüfcode am Ende, Üben einzelner Räume direkt aus der Auswertung
+- Nachweis-Karte mit Prüfcode am Ende, Üben einzelner Räume direkt aus der Auswertung oder später über „Letzter Nachweis“, neues Spiel mit neuen Zahlen
 
 ## Für Lehrkräfte
 
-Der Lehrkraft-Modus öffnet sich, wenn man den Titel auf der Startseite etwa 2 Sekunden gedrückt hält (am PC: Strg + Umschalt + L). Dort lassen sich Kurs (E/G), Räume, Zeitlimit, gleiche Zahlen für die ganze Klasse (mit Lösungsblatt), Ton und PIN einstellen und als Klassen-Link teilen. Außerdem gibt es eine Vorschau aller Räume und die Prüfung der Prüfcodes.
+Der Lehrkraft-Modus öffnet sich, wenn man den Titel auf der Startseite etwa 2 Sekunden gedrückt hält (am PC: Strg + Umschalt + L). Dort lassen sich Kurs (E/G), Räume, Zeitlimit, gleiche Zahlen für die ganze Klasse (mit Lösungsblatt), Ton und PIN einstellen und als Klassen-Link teilen. Außerdem gibt es eine Vorschau aller Räume, die Prüfung der Prüfcodes und ein druckbares Notizblatt für die Rechnungen der Schüler:innen (kompakt oder ausführlich).
 
 Bitte im Lehrkraft-Modus eine eigene PIN setzen und die Klasse über den Klassen-Link spielen lassen.
 

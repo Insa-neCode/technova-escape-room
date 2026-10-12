@@ -1647,9 +1647,11 @@ function startLevel(first){
   renderHud();renderScene();
   say(lvl().intro+(lvl().bonus?'':` Ab ${needCount()} Codekarten lässt sich das Zahlenschloss bedienen.`)+(extra.length?' '+extra.join(' '):''));save();
 }
-function startGame(mode){
+function startGame(mode,fresh){
   const names=[$('#n0').value.trim()||'Team Orange',$('#n1').value.trim()||'Team Blau'];
   S=newState(mode,names);S.cfg=JSON.parse(JSON.stringify(CFG));
+  /* Übungsrunde nach der Auswertung: immer neue Zahlen, auch wenn die Klasse gleiche Zahlen hat */
+  if(fresh)S.cfg.same=false;
   if(S.cfg.same)S.seed='k:'+S.cfg.code;
   S.lvl=playable()[0];SFX.alarm();
   show('game');startLevel();startTick();
@@ -2063,7 +2065,8 @@ function finale(){
 function finish(){
   S.done=true;S.practice=false;clearInterval(tick);
   const R=buildResult();
-  if(!S.preview){wipe();saveLast(R)}
+  if(S.cont){const old=loadLast();if(old&&old.duel===R.duel){R.name=old.name;R.names=old.names}}
+  if(!S.preview){wipe();saveLast(R);saveDone()}
   if(!S.timeout)setTimeout(SFX.win,300);
   const e=$('#end');e.replaceChildren();
   const duel=S.mode==='duel';
@@ -2102,7 +2105,7 @@ function finish(){
     h('h2',{style:'margin-top:26px;font-size:28px'},'Nachweis für die Lehrkraft'),
     h('p',{style:'color:var(--mute)'},R.duel?'Prüft eure Teamnamen. Dann könnt ihr die Karte drucken oder als PDF speichern, oder ihr schickt den Prüfcode.':'Trag deinen Namen ein. Dann kannst du die Karte drucken oder als PDF speichern, oder du schickst den Prüfcode.'),
     proofCard(R),
-    h('div',{class:'startrow'},h('button',{class:'btn primary',type:'button',onclick:()=>{show('intro');introState()}},'Nochmal spielen')),
+    S.preview?h('div',{class:'startrow'},h('button',{class:'btn primary',type:'button',onclick:()=>{show('intro');introState()}},'Zum Start')):nextBox(),
     h('p',{class:'legal'},LICENSE));
   show('end');
 }
@@ -2277,6 +2280,7 @@ function teacherSetup(){
   const bSave=h('button',{class:'btn primary',type:'button'},'Auf diesem Gerät speichern');
   const bLink=h('button',{class:'btn',type:'button'},'Klassen-Link kopieren');
   const bSheet=h('button',{class:'btn',type:'button'},'Lösungsblatt öffnen');
+  const bNotesK=h('button',{class:'btn',type:'button'},'Notizblatt kompakt'),bNotesL=h('button',{class:'btn',type:'button'},'Notizblatt ausführlich');
   const bWipe=h('button',{class:'btn ghost',type:'button'},'Spielstand auf diesem Gerät löschen');
   const bReset=h('button',{class:'btn ghost',type:'button'},'Standard wiederherstellen');
   const sumP=h('p',{class:'cfgnote'});
@@ -2290,7 +2294,7 @@ function teacherSetup(){
   function upd(){
     const err=valid();
     codeRow.hidden=!c.same;
-    [bSave,bLink].forEach(b=>b.disabled=!!err);bSheet.disabled=!!err||!c.same;
+    [bSave,bLink,bNotesK,bNotesL].forEach(b=>b.disabled=!!err);bSheet.disabled=!!err||!c.same;
     const notes=[];
     if(!c.rooms[LEVELS.length-1])notes.push('Ohne Serverraum gibt es kein Finale.');
     if(c.kurs==='G'&&c.rooms[LEVELS.findIndex(L=>L.bonus)])notes.push('Im G-Kurs ist der Bonusraum ausgeschaltet.');
@@ -2306,6 +2310,8 @@ function teacherSetup(){
     catch(e){link.focus();fb.className='fb good';fb.textContent='Kopieren ging nicht automatisch. Der Link ist markiert, kopiere ihn mit Strg+C.'}
   });
   bSheet.addEventListener('click',()=>{commit();openSheet(CFG)});
+  bNotesK.addEventListener('click',()=>{commit();openNotes(CFG,false)});
+  bNotesL.addEventListener('click',()=>{commit();openNotes(CFG,true)});
   bWipe.addEventListener('click',()=>{if(confirm('Den gespeicherten Spielstand auf diesem Gerät löschen?')){wipe();introState();fb.className='fb good';fb.textContent='Spielstand gelöscht.'}});
   bReset.addEventListener('click',()=>{CFG=cleanCfg({pin:c.pin});saveCfg();cfgNote();teacherSetup()});
   const sec=(t,...k)=>h('div',{class:'tsec'},h('h3',{},t),...k);
@@ -2328,6 +2334,7 @@ function teacherSetup(){
       link),
     fb,
     h('div',{class:'actions'},bSave,bLink,bSheet),
+    sec('Notizblatt für Schüler:innen',h('p',{class:'tipline'},'Druckbares Rechenblatt mit Codekarten-Tabellen, Rechenfeldern, Türcodes und Fallakte, passend zu den gewählten Räumen. Kompakt: etwa 3 Seiten. Ausführlich: eine Seite pro Raum mit einem Feld pro Rätsel, bei gleichen Zahlen für alle mit Aufgabentexten.'),h('div',{class:'actions'},bNotesK,bNotesL)),
     h('div',{class:'actions'},bWipe,bReset),
     sec('Prüfcode prüfen',verifyBox()));
   upd();
@@ -2415,6 +2422,10 @@ function buildResult(){
     codesFirst:mains.filter(i=>S.codes[i]&&S.codes[i].done&&!S.codes[i].skipped&&S.codes[i].tries===0).length,
     klasse:gcfg().same?gcfg().code:''};
 }
+/* Der fertige Spielstand bleibt neben dem Nachweis gespeichert, damit man auch später noch Räume üben kann */
+const DONEKEY='technova-done';
+const saveDone=()=>{try{localStorage.setItem(DONEKEY,JSON.stringify(S))}catch(e){}};
+const loadDone=()=>{try{const s=localStorage.getItem(DONEKEY);return s?JSON.parse(s):null}catch(e){return null}};
 const saveLast=R=>{try{localStorage.setItem(LASTKEY,JSON.stringify(R))}catch(e){}};
 const loadLast=()=>{try{const s=localStorage.getItem(LASTKEY);return s?JSON.parse(s):null}catch(e){return null}};
 /* Feldreihenfolge und Bitbreiten. Einzeln: 16 Zeichen, Duell: 19 Zeichen. */
@@ -2477,9 +2488,38 @@ function proofCard(R){
 }
 function showLastProof(){
   const R=loadLast();if(!R)return;
+  const D=loadDone();
+  if(D){S=D;S.codes=S.codes||{};S.inv=S.inv||[];S.used=S.used||{};S.cfg=S.cfg||cleanCfg(null);S.stars=S.stars||{};S.done=true}
   $('#end').replaceChildren(h('h1',{},'Letzter Nachweis'),h('p',{style:'color:var(--mute)'},'Dieser Nachweis ist auf diesem Gerät gespeichert. Ein neues Spiel ersetzt ihn.'),proofCard(R),
-    h('div',{class:'startrow'},h('button',{class:'btn',type:'button',onclick:()=>{show('intro');introState()}},'Zurück zum Start')));
+    ...(D?practiceTable():[]),
+    D?nextBox():h('div',{class:'startrow'},h('button',{class:'btn',type:'button',onclick:()=>{show('intro');introState()}},'Zurück zum Start')));
   show('end');
+}
+/* Räume zum Üben, aus dem gespeicherten Spielstand */
+function practiceTable(){
+  const rows=LEVELS.map((L,i)=>{
+    if(L.bonus||!allowed(i))return null;
+    const n=L.puzzles.length,solved=L.puzzles.filter(p=>S.stats[p.id]&&S.stats[p.id].solved).length,st=roomStatus(i),[tag,lab]=st?STATUS[st]:['tagoff','nicht erreicht'];
+    return h('tr',{},h('td',{},h('b',{},L.room),h('br'),h('span',{style:'color:var(--mute);font-size:15px'},L.topic)),
+      h('td',{},`${solved}/${n} gelöst`),
+      h('td',{class:'stars',style:'font-size:20px;letter-spacing:2px'},'★'.repeat(S.stars[i]||0)+'☆'.repeat(3-(S.stars[i]||0))),
+      h('td',{},h('span',{class:tag},lab)),practiceCell(i));
+  });
+  return [h('h2',{style:'margin-top:26px;font-size:28px'},'Weiter üben'),
+    h('p',{style:'color:var(--mute)'},'Spring direkt in einen Raum: „Offene Rätsel“ holt nach, was noch fehlt. „Neue Aufgaben“ übt den Raum mit neuen Zahlen. Danach geht es hierher zurück.'),
+    h('table',{class:'res'},h('thead',{},h('tr',{},h('th',{},'Raum und Thema'),h('th',{},'Ergebnis'),h('th',{},'Sterne'),h('th',{},'Einschätzung'),h('th',{},'Üben'))),h('tbody',{},rows))];
+}
+/* Wie geht es weiter? Komplett neues Spiel mit neuen Zahlen oder zurück zum Start */
+function nextBox(){
+  const m=S.mode||'solo',names=(S.names||[]).slice();
+  const fresh=h('button',{class:'btn primary',type:'button',onclick:()=>{
+    if(!confirm('Ein komplett neues Spiel mit neuen Zahlen starten? Wenn du es beendest, ersetzt es diesen Nachweis. Drucke oder notiere ihn vorher, falls du ihn noch brauchst.'))return;
+    setMode(m);if(m==='duel'){$('#n0').value=names[0]||'Team Orange';$('#n1').value=names[1]||'Team Blau'}
+    wipe();startGame(m,true);
+  }},'Neues Spiel mit neuen Zahlen');
+  return h('div',{},h('h2',{style:'margin-top:26px;font-size:28px'},'Wie geht es weiter?'),
+    h('p',{style:'color:var(--mute)'},'Üben kannst du einzelne Räume oben in der Tabelle. Oder du spielst die ganze Nachtschicht noch einmal mit neuen Aufgaben.'),
+    h('div',{class:'startrow'},fresh,h('button',{class:'btn',type:'button',onclick:()=>{show('intro');introState()}},'Zum Start')));
 }
 $('#lastproof').addEventListener('click',showLastProof);
 
@@ -2510,7 +2550,7 @@ function verifyBox(){
    Nach der Tür geht es zurück zur Auswertung. Neue Zahlen bekommt ein Raum über einen eigenen Zusatz zum Seed. */
 function practiceRoom(i,fresh){
   const L=LEVELS[i];
-  S.done=false;S.practice=true;S.cfg.limit=0;
+  S.done=false;S.practice=true;S.cont=true;S.cfg.limit=0;
   if(fresh){
     S.reseed=S.reseed||{};S.reseed[i]=(S.reseed[i]||0)+1;
     L.puzzles.forEach(p=>{delete S.stats[p.id]});delete S.codes[i];delete S.stars[i];
@@ -2550,6 +2590,69 @@ function openMap(){
 $('#btnMap').addEventListener('click',openMap);
 $('#mclose').addEventListener('click',()=>$('#mapdlg').close());
 
+/* ================= NOTIZBLATT ================= */
+/* Druckbares Rechenblatt für Schüler:innen, passend zu den Einstellungen.
+   kompakt: pro Raum Codekarten-Tabelle, ein Rechenfeld, Türcode. ausführlich: zusätzlich ein Rechenfeld pro Rätsel,
+   bei gleichen Zahlen für alle mit Aufgabentext. Am Ende eine Fallakten-Seite. */
+function openNotes(c,full){
+  const keep=S;let rooms='';
+  S={seed:'k:'+c.code,cfg:c};
+  try{
+    let no=0;
+    LEVELS.forEach((L,li)=>{
+      if(!allowed(li))return;
+      const title=L.bonus?`Bonusraum: ${esc(L.room)}`:`Raum ${++no}: ${esc(L.room)}`;
+      const n=L.puzzles.length;
+      const cards=L.bonus?'':`<table class="cards"><tr><th>Karte</th><th>Gleichung auf der Codekarte</th><th>Probe</th></tr>${
+        Array.from({length:n},(_,i)=>`<tr><td>${LET[i]}</td><td></td><td class="ck">☐</td></tr>`).join('')}</table>`;
+      const door=L.bonus?'':`<div class="door"><div><b>Rechnung für den Türcode</b> · gewählte Karten: ____ und ____</div><div class="grid g-s"></div><div class="code">Türcode&nbsp; ( ______ | ______ )</div></div>`;
+      let puzzles='';
+      if(full)puzzles=`<div class="pz">${L.puzzles.map(p0=>{
+        const p=c.same?inst(p0):p0;
+        return `<div class="pbox"><b>${esc(p0.name)}</b>${c.same&&p.q?`<div class="task">${esc(p.q)}</div>`:''}<div class="grid ${c.same?'g-m':'g-l'}"></div><div class="tick">☐ gelöst</div></div>`;
+      }).join('')}</div>`;
+      else puzzles=`<div class="hint">Rechne hier die Rätsel, deren Codekarten du sammelst. Notiere dazu immer den Namen des Rätsels.</div><div class="grid g-l"></div>`;
+      rooms+=`<section class="room${full?' page':''}"><h2>${title} <small>${esc(L.topic)}</small></h2>${puzzles}${cards}${door}</section>`;
+    });
+  }finally{S=keep}
+  const people=CAST.map(k=>`<tr><td><b>${esc(PEOPLE[k].name)}</b><br><small>${esc(PEOPLE[k].role)}</small></td><td></td><td class="ck">☐ verdächtig<br>☐ Alibi</td></tr>`).join('');
+  const items=Object.keys(ITEMS).map(k=>`<span class="item">☐ ${esc(ITEMS[k].name)}</span>`).join('');
+  const finale=allowed(LEVELS.length-1)?`<h3>Finale</h3><p>Wer oder was hat ARGUS lahmgelegt? ________________________________________________</p><p>Der Vorzeichenfehler steckt in Zeile ______ . Freigabe-Code&nbsp; ( ______ | ______ )</p><div class="grid g-s"></div>`:'';
+  const files=`<section class="room page"><h2>Fallakte</h2>
+    <h3>Gegenstände</h3><p>${items}</p>
+    <h3>Verdächtige</h3><table class="cards"><tr><th style="width:28%">Person</th><th>Notizen</th><th style="width:18%">Stand</th></tr>${people}</table>
+    <h3>Beweise</h3><ol class="lines">${Array.from({length:7},()=>'<li></li>').join('')}</ol>${finale}</section>`;
+  const doc=`<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Notizblatt TechNova</title><style>
+@page{size:A4;margin:11mm}
+*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+body{font:11pt/1.4 system-ui,"Segoe UI",sans-serif;color:#111;background:#fff;margin:16px}
+h1{font-size:17pt;margin:0}h2{font-size:13pt;margin:0 0 6px;padding-bottom:3px;border-bottom:2.5pt solid #FF7A1A}h2 small{font-weight:400;color:#555;font-size:10pt}h3{font-size:11.5pt;margin:12px 0 4px}
+.head{display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px;margin:8px 0 6px}.head div{border-bottom:1px solid #333;padding:14px 0 2px;font-size:9.5pt;color:#444}
+.intro{font-size:9.5pt;color:#444;margin:0 0 10px}
+.room{border:1.2pt solid #333;border-radius:6px;padding:8px 10px;margin:0 0 10px;break-inside:avoid}
+.room.page{break-before:page}.room.page:first-of-type{break-before:auto}
+.grid{border:1px solid #9aa6b2;background-color:#fff;background-image:linear-gradient(#d5dde6 1px,transparent 1px),linear-gradient(90deg,#d5dde6 1px,transparent 1px);background-size:5mm 5mm;margin:4px 0}
+.g-s{height:26mm}.g-m{height:30mm}.g-l{height:40mm}
+.pz{display:grid;grid-template-columns:1fr 1fr;gap:6px 10px;margin-bottom:6px}.pbox{break-inside:avoid}.task{font-size:8.5pt;color:#333;margin:2px 0}.tick{font-size:9pt;color:#444;text-align:right}
+.hint{font-size:9.5pt;color:#444}
+table.cards{width:100%;border-collapse:collapse;margin:6px 0}.cards th,.cards td{border:1px solid #888;padding:3px 6px;text-align:left;font-size:10pt;height:7.5mm;vertical-align:middle}.cards th{background:#f1f1f1;font-size:9pt;height:auto}.cards td:first-child{width:12%;font-weight:700}.ck{width:14%;font-size:9pt}
+.door{margin-top:4px}.code{font:700 13pt ui-monospace,Consolas,monospace;text-align:right;margin-top:4px}
+.item{display:inline-block;margin-right:18px}
+ol.lines{padding-left:22px;margin:4px 0}ol.lines li{border-bottom:1px solid #999;height:8mm}
+button{font:600 15px system-ui;padding:8px 16px;margin:8px 0}
+@media print{button{display:none}body{margin:0}}
+</style></head><body>
+<h1>Notizblatt „Nachtschicht bei TechNova“</h1>
+<div class="head"><div>Name</div><div>Klasse</div><div>Datum</div></div>
+<p class="intro">Notiere hier deine Rechnungen und Codekarten. ${c.same?`Klassencode ${esc(c.code)}. `:''}Rechne sauber Schritt für Schritt, dann findest du Fehler schneller. Achte auf die Vorzeichen.</p>
+<button onclick="print()">Drucken</button>
+${rooms}${files}
+<p style="font-size:8pt;color:#666;margin-top:10px">${esc(LICENSE)}</p></body></html>`;
+  const blob=new Blob([doc],{type:'text/html'}),url=URL.createObjectURL(blob);
+  const w=window.open(url,'_blank');
+  if(!w){const a=h('a',{href:url,download:`Notizblatt_TechNova${full?'_ausfuehrlich':''}.html`});document.body.append(a);a.click();a.remove()}
+}
+
 /* ================= EVENTS ================= */
 $('#scene').addEventListener('click',ev=>{
   const hid=ev.target.closest('.hid');
@@ -2581,7 +2684,7 @@ $('#start').addEventListener('click',()=>{
 $('#resume').addEventListener('click',()=>{
   const s=load();if(!s)return;S=s;S.codes=S.codes||{};S.inv=S.inv||[];S.used=S.used||{};S.cfg=S.cfg||cleanCfg(null);show('game');renderHud();renderScene();say(lvl().intro);startTick();
 });
-function introState(){const s=load();$('#resume').hidden=!(s&&!s.done&&!s.timeout);$('#lastproof').hidden=!loadLast();cfgNote()}
+function introState(){const s=load();$('#resume').hidden=!(s&&!s.done&&!s.timeout);$('#lastproof').hidden=!loadLast();$('#lastproof').textContent=loadDone()?'Letzter Nachweis · Üben':'Letzter Nachweis';cfgNote()}
 
 /* ================= START ================= */
 $('#herosvg').innerHTML=sceneSvg(0,false,null);
