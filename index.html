@@ -2110,7 +2110,9 @@ function finish(){
 /* ================= LEHRKRAFT-MODUS ================= */
 /* Zugang: Titel (Startseite) oder Raumname (im Spiel) 1,5 Sekunden gedrückt halten, oder Strg+Umschalt+L. Dann PIN.
    Einstellungen liegen im Gerät und lassen sich als Klassen-Link (#k=...) auf alle Geräte übertragen. */
-const CFGKEY='technova-cfg';
+/* Neuer Schlüssel: Alle früher gespeicherten Lehrkraft-Einstellungen gelten nicht mehr, die PIN ist wieder 1234.
+   Klassen-Links (#k=…) funktionieren weiter. */
+const CFGKEY='technova-cfg-2';
 const CFG0={kurs:'E',rooms:LEVELS.map(()=>true),limit:0,same:false,code:'',pin:'1234',sound:'on'};
 const LIMITS=[0,20,30,45,60,90];
 function cleanCfg(c){
@@ -2227,7 +2229,8 @@ function askPin(pin,then){
   const box=$('#tbody');
   const inp=h('input',{type:'password',inputmode:'numeric',autocomplete:'off',maxlength:'8','aria-label':'PIN'});
   const fb=h('div',{class:'fb','aria-live':'polite'});
-  const check=()=>{if(inp.value===pin)then();else{fb.className='fb bad';fb.textContent='Falsche PIN.';inp.value='';inp.focus()}};
+  /* Im laufenden Spiel gilt auch die aktuelle PIN des Geräts, nicht nur die vom Spielstart */
+  const check=()=>{const v=inp.value.trim();if(v===pin||v===CFG.pin)then();else{fb.className='fb bad';fb.textContent='Falsche PIN.';inp.value='';inp.focus()}};
   inp.addEventListener('keydown',e=>{if(e.key==='Enter')check()});
   box.replaceChildren(
     h('header',{},h('div',{},h('div',{class:'kicker'},'Nur für Lehrkräfte'),h('h2',{id:'ttitle'},'Lehrkraft-Modus')),tClose()),
