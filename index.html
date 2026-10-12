@@ -2279,6 +2279,7 @@ function teacherSetup(){
   const local=/^(file|data|blob):/.test(location.protocol);
   const bSave=h('button',{class:'btn primary',type:'button'},'Auf diesem Gerät speichern');
   const bLink=h('button',{class:'btn',type:'button'},'Klassen-Link kopieren');
+  const bQr=h('button',{class:'btn',type:'button'},'QR-Code zeigen');
   const bSheet=h('button',{class:'btn',type:'button'},'Lösungsblatt öffnen');
   const bNotesK=h('button',{class:'btn',type:'button'},'Notizblatt kompakt'),bNotesL=h('button',{class:'btn',type:'button'},'Notizblatt ausführlich');
   const bWipe=h('button',{class:'btn ghost',type:'button'},'Spielstand auf diesem Gerät löschen');
@@ -2294,7 +2295,7 @@ function teacherSetup(){
   function upd(){
     const err=valid();
     codeRow.hidden=!c.same;
-    [bSave,bLink,bNotesK,bNotesL].forEach(b=>b.disabled=!!err);bSheet.disabled=!!err||!c.same;
+    [bSave,bLink,bQr,bNotesK,bNotesL].forEach(b=>b.disabled=!!err);bSheet.disabled=!!err||!c.same;
     const notes=[];
     if(!c.rooms[LEVELS.length-1])notes.push('Ohne Serverraum gibt es kein Finale.');
     if(c.kurs==='G'&&c.rooms[LEVELS.findIndex(L=>L.bonus)])notes.push('Im G-Kurs ist der Bonusraum ausgeschaltet.');
@@ -2309,6 +2310,7 @@ function teacherSetup(){
     try{await navigator.clipboard.writeText(link.value);fb.className='fb good';fb.textContent='Link kopiert. Wer ihn öffnet, bekommt diese Einstellungen.'}
     catch(e){link.focus();fb.className='fb good';fb.textContent='Kopieren ging nicht automatisch. Der Link ist markiert, kopiere ihn mit Strg+C.'}
   });
+  bQr.addEventListener('click',()=>{commit();openQr(link.value,CFG)});
   bSheet.addEventListener('click',()=>{commit();openSheet(CFG)});
   bNotesK.addEventListener('click',()=>{commit();openNotes(CFG,false)});
   bNotesL.addEventListener('click',()=>{commit();openNotes(CFG,true)});
@@ -2329,11 +2331,11 @@ function teacherSetup(){
     sec('Ton',snd),
     sec('PIN für den Lehrkraft-Modus',h('label',{class:'frow',style:'max-width:260px'},h('span',{class:'flab'},'PIN'),pin)),
     sec('Auf alle Geräte übertragen',
-      h('p',{class:'tipline'},'Der Klassen-Link enthält alle Einstellungen. Teile ihn zum Beispiel über Moodle, fobizz oder als QR-Code. Wer ihn öffnet, spielt mit diesen Einstellungen.'
+      h('p',{class:'tipline'},'Der Klassen-Link enthält alle Einstellungen. Teile ihn zum Beispiel über Moodle oder fobizz, oder zeig ihn mit „QR-Code zeigen“ am Beamer oder auf einem Ausdruck. Wer ihn öffnet, spielt mit diesen Einstellungen.'
         +(local?' Hinweis: Die Datei läuft gerade lokal auf diesem Gerät. Der Link funktioniert erst, wenn die Datei online liegt, zum Beispiel auf GitHub Pages.':'')),
       link),
     fb,
-    h('div',{class:'actions'},bSave,bLink,bSheet),
+    h('div',{class:'actions'},bSave,bLink,bQr,bSheet),
     sec('Notizblatt für Schüler:innen',h('p',{class:'tipline'},'Druckbares Rechenblatt mit Codekarten-Tabellen, Rechenfeldern, Türcodes und Fallakte, passend zu den gewählten Räumen. Kompakt: etwa 3 Seiten. Ausführlich: eine Seite pro Raum mit einem Feld pro Rätsel, bei gleichen Zahlen für alle mit Aufgabentexten.'),h('div',{class:'actions'},bNotesK,bNotesL)),
     h('div',{class:'actions'},bWipe,bReset),
     sec('Prüfcode prüfen',verifyBox()));
@@ -2589,6 +2591,139 @@ function openMap(){
 }
 $('#btnMap').addEventListener('click',openMap);
 $('#mclose').addEventListener('click',()=>$('#mapdlg').close());
+
+/* ================= QR-CODE ================= */
+/* Kleiner QR-Generator (Byte-Modus, Fehlerkorrektur M, Version 1 bis 40), damit der Klassen-Link ohne fremden Dienst
+   als QR-Code angezeigt werden kann. Liefert eine Matrix aus true (dunkel) und false (hell). */
+function qrMatrix(text){
+  const ECC=[-1,10,16,26,18,24,16,18,22,22,26,30,22,22,24,24,28,28,26,26,26,26,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28];
+  const BLK=[-1,1,1,1,2,2,4,4,4,5,5,5,8,9,9,10,10,11,13,14,16,17,17,18,20,21,23,25,26,28,29,31,33,35,37,38,40,43,45,47,49];
+  const bytes=[...new TextEncoder().encode(text)];
+  const raw=v=>{let r=(16*v+128)*v+64;if(v>=2){const n=Math.floor(v/7)+2;r-=(25*n-10)*n-55;if(v>=7)r-=36}return r};
+  const dataCw=v=>Math.floor(raw(v)/8)-ECC[v]*BLK[v];
+  let ver=1;
+  while(4+(ver<=9?8:16)+8*bytes.length>dataCw(ver)*8){if(++ver>40)throw new Error('Text zu lang für einen QR-Code')}
+  /* Bitstrom */
+  const bits=[];const put=(v,n)=>{for(let i=n-1;i>=0;i--)bits.push((v>>>i)&1)};
+  put(4,4);put(bytes.length,ver<=9?8:16);bytes.forEach(b=>put(b,8));
+  const cap=dataCw(ver)*8;
+  put(0,Math.min(4,cap-bits.length));put(0,(8-bits.length%8)%8);
+  for(let p=0xEC;bits.length<cap;p^=0xEC^0x11)put(p,8);
+  const data=[];for(let i=0;i<bits.length;i+=8)data.push(bits.slice(i,i+8).reduce((a,b)=>a*2+b,0));
+  /* Reed-Solomon */
+  const mul=(x,y)=>{let z=0;for(let i=7;i>=0;i--){z=(z<<1)^((z>>>7)*0x11D);z^=((y>>>i)&1)*x}return z};
+  const deg=ECC[ver],div=new Array(deg).fill(0);div[deg-1]=1;
+  for(let i=0,root=1;i<deg;i++){for(let j=0;j<deg;j++){div[j]=mul(div[j],root);if(j+1<deg)div[j]^=div[j+1]}root=mul(root,2)}
+  const rem=d=>{const r=new Array(deg).fill(0);d.forEach(b=>{const f=b^r.shift();r.push(0);for(let i=0;i<deg;i++)r[i]^=mul(div[i],f)});return r};
+  const nb=BLK[ver],rawCw=Math.floor(raw(ver)/8),nShort=nb-rawCw%nb,shortLen=Math.floor(rawCw/nb),blocks=[];
+  for(let i=0,k=0;i<nb;i++){
+    const len=shortLen-deg+(i<nShort?0:1),d=data.slice(k,k+len);k+=len;
+    const e=rem(d);if(i<nShort)d.push(0);blocks.push(d.concat(e));
+  }
+  const cw=[];
+  for(let i=0;i<blocks[0].length;i++)blocks.forEach((b,j)=>{if(i!==shortLen-deg||j>=nShort)cw.push(b[i])});
+  /* Funktionsmuster */
+  const size=ver*4+17,M=[...Array(size)].map(()=>new Array(size).fill(false)),F=[...Array(size)].map(()=>new Array(size).fill(false));
+  const set=(x,y,d)=>{M[y][x]=d;F[y][x]=true};
+  for(let i=0;i<size;i++){set(6,i,i%2===0);set(i,6,i%2===0)}
+  [[3,3],[size-4,3],[3,size-4]].forEach(([x,y])=>{
+    for(let dy=-4;dy<=4;dy++)for(let dx=-4;dx<=4;dx++){const xx=x+dx,yy=y+dy,d=Math.max(Math.abs(dx),Math.abs(dy));if(xx>=0&&xx<size&&yy>=0&&yy<size)set(xx,yy,d!==2&&d!==4)}
+  });
+  if(ver>1){
+    const n=Math.floor(ver/7)+2,step=ver===32?26:Math.ceil((ver*4+4)/(n*2-2))*2,pos=[6];
+    for(let p=size-7;pos.length<n;p-=step)pos.splice(1,0,p);
+    pos.forEach((a,i)=>pos.forEach((b,j)=>{
+      if((i===0&&j===0)||(i===0&&j===n-1)||(i===n-1&&j===0))return;
+      for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++)set(a+dx,b+dy,Math.max(Math.abs(dx),Math.abs(dy))!==1);
+    }));
+  }
+  const fmt=mask=>{
+    const d=(0<<3)|mask;let r=d;for(let i=0;i<10;i++)r=(r<<1)^((r>>>9)*0x537);
+    const b=((d<<10)|r)^0x5412,g=i=>((b>>>i)&1)===1;
+    for(let i=0;i<=5;i++)set(8,i,g(i));
+    set(8,7,g(6));set(8,8,g(7));set(7,8,g(8));
+    for(let i=9;i<15;i++)set(14-i,8,g(i));
+    for(let i=0;i<8;i++)set(size-1-i,8,g(i));
+    for(let i=8;i<15;i++)set(8,size-15+i,g(i));
+    set(8,size-8,true);
+  };
+  fmt(0);
+  if(ver>=7){
+    let r=ver;for(let i=0;i<12;i++)r=(r<<1)^((r>>>11)*0x1F25);
+    const b=(ver<<12)|r;
+    for(let i=0;i<18;i++){const d=((b>>>i)&1)===1,a=size-11+i%3,c=Math.floor(i/3);set(a,c,d);set(c,a,d)}
+  }
+  /* Daten im Zickzack */
+  let i=0;
+  for(let right=size-1;right>=1;right-=2){
+    if(right===6)right=5;
+    for(let v=0;v<size;v++)for(let j=0;j<2;j++){
+      const x=right-j,up=((right+1)&2)===0,y=up?size-1-v:v;
+      if(!F[y][x]&&i<cw.length*8){M[y][x]=((cw[i>>>3]>>>(7-(i&7)))&1)===1;i++}
+    }
+  }
+  /* Maske mit der geringsten Strafe wählen */
+  const MASKS=[(x,y)=>(x+y)%2===0,(x,y)=>y%2===0,(x,y)=>x%3===0,(x,y)=>(x+y)%3===0,(x,y)=>(Math.floor(x/3)+Math.floor(y/2))%2===0,
+    (x,y)=>x*y%2+x*y%3===0,(x,y)=>(x*y%2+x*y%3)%2===0,(x,y)=>((x+y)%2+x*y%3)%2===0];
+  const apply=m=>{for(let y=0;y<size;y++)for(let x=0;x<size;x++)if(!F[y][x]&&MASKS[m](x,y))M[y][x]=!M[y][x]};
+  const penalty=()=>{
+    let p=0,dark=0;
+    const line=get=>{
+      let run=1;
+      for(let k=1;k<=size;k++){
+        if(k<size&&get(k)===get(k-1))run++;
+        else{if(run>=5)p+=run-2;run=1}
+      }
+      for(let k=0;k+7<=size;k++){
+        const s=[...Array(7)].map((_,t)=>get(k+t));
+        if(s.join()===[1,0,1,1,1,0,1].map(Boolean).join()){
+          const light=(a,b)=>{for(let t=a;t<b;t++)if(t>=0&&t<size&&get(t))return false;return true};
+          if(light(k-4,k)||light(k+7,k+11))p+=40;
+        }
+      }
+    };
+    for(let y=0;y<size;y++)line(x=>M[y][x]);
+    for(let x=0;x<size;x++)line(y=>M[y][x]);
+    for(let y=0;y<size-1;y++)for(let x=0;x<size-1;x++){const c=M[y][x];if(c===M[y][x+1]&&c===M[y+1][x]&&c===M[y+1][x+1])p+=3}
+    M.forEach(r=>r.forEach(c=>{if(c)dark++}));
+    p+=Math.floor(Math.abs(dark*20-size*size*10)/(size*size))*10;
+    return p;
+  };
+  let best=0,bestP=Infinity;
+  for(let m=0;m<8;m++){apply(m);fmt(m);const p=penalty();if(p<bestP){bestP=p;best=m}apply(m)}
+  apply(best);fmt(best);
+  return M;
+}
+/* QR-Code als SVG-Text, mit Ruhezone */
+function qrSvg(text){
+  const M=qrMatrix(text),n=M.length,q=4;let d='';
+  M.forEach((r,y)=>r.forEach((c,x)=>{if(c)d+=`M${x+q} ${y+q}h1v1h-1z`}));
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${n+2*q} ${n+2*q}" shape-rendering="crispEdges" role="img" aria-label="QR-Code"><rect width="100%" height="100%" fill="#fff"/><path d="${d}" fill="#000"/></svg>`;
+}
+
+/* QR-Code des Klassen-Links in einem eigenen Fenster: zum Zeigen am Beamer oder zum Ausdrucken */
+function openQr(url,c){
+  const doc=`<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>QR-Code TechNova</title><style>
+@page{size:A4;margin:15mm}
+*{box-sizing:border-box}
+body{font:12pt/1.45 system-ui,"Segoe UI",sans-serif;color:#111;background:#fff;margin:0;padding:24px 16px;text-align:center}
+h1{font-size:24pt;margin:0 0 4px}.sub{color:#444;margin:0 0 18px}
+.qr{width:min(78vmin,150mm);margin:0 auto}.qr svg{width:100%;height:auto;display:block}
+.step{font-size:15pt;margin:16px 0 6px}.info{color:#444;font-size:10.5pt;max-width:150mm;margin:6px auto}
+button{font:600 15px system-ui;padding:8px 16px;margin:14px 0 0}
+@media print{button{display:none}body{padding:0}}
+</style></head><body>
+<h1>Nachtschicht bei TechNova</h1>
+<p class="sub">Escape Room zu linearen Gleichungssystemen</p>
+<div class="qr">${qrSvg(url)}</div>
+<p class="step"><b>Mit der Kamera scannen und los geht’s.</b></p>
+<p class="info">${esc(cfgSummary(c))}</p>
+<button onclick="print()">Drucken</button>
+</body></html>`;
+  const blob=new Blob([doc],{type:'text/html'}),u=URL.createObjectURL(blob);
+  const w=window.open(u,'_blank');
+  if(!w){const a=h('a',{href:u,download:'QR-Code_TechNova.html'});document.body.append(a);a.click();a.remove()}
+}
 
 /* ================= NOTIZBLATT ================= */
 /* Druckbares Rechenblatt für Schüler:innen, passend zu den Einstellungen.
