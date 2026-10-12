@@ -2605,14 +2605,16 @@ function openNotes(c,full){
       const n=L.puzzles.length;
       const cards=L.bonus?'':`<table class="cards"><tr><th>Karte</th><th>Gleichung auf der Codekarte</th><th>Probe</th></tr>${
         Array.from({length:n},(_,i)=>`<tr><td>${LET[i]}</td><td></td><td class="ck">☐</td></tr>`).join('')}</table>`;
-      const door=L.bonus?'':`<div class="door"><div><b>Rechnung für den Türcode</b> · gewählte Karten: ____ und ____</div><div class="grid g-s"></div><div class="code">Türcode&nbsp; ( ______ | ______ )</div></div>`;
+      const door=L.bonus?'':`<div class="door"><div><b>Rechnung für den Türcode</b><br>gewählte Karten: ______ und ______</div><div class="grid g-s"></div><div class="code">Türcode&nbsp; ( ______ | ______ )</div></div>`;
       let puzzles='';
       if(full)puzzles=`<div class="pz">${L.puzzles.map(p0=>{
         const p=c.same?inst(p0):p0;
         return `<div class="pbox"><b>${esc(p0.name)}</b>${c.same&&p.q?`<div class="task">${esc(p.q)}</div>`:''}<div class="grid ${c.same?'g-m':'g-l'}"></div><div class="tick">☐ gelöst</div></div>`;
       }).join('')}</div>`;
       else puzzles=`<div class="hint">Rechne hier die Rätsel, deren Codekarten du sammelst. Notiere dazu immer den Namen des Rätsels.</div><div class="grid g-l"></div>`;
-      rooms+=`<section class="room${full?' page':''}"><h2>${title} <small>${esc(L.topic)}</small></h2>${puzzles}${cards}${door}</section>`;
+      /* kompakt: Codekarten und Türcode nebeneinander, damit zwei Räume auf eine A4-Seite passen */
+      const tail=full||L.bonus?cards+door:`<div class="duo">${cards}${door}</div>`;
+      rooms+=`<section class="room${full?' page':''}"><h2>${title} <small>${esc(L.topic)}</small></h2>${puzzles}${tail}</section>`;
     });
   }finally{S=keep}
   const people=CAST.map(k=>`<tr><td><b>${esc(PEOPLE[k].name)}</b><br><small>${esc(PEOPLE[k].role)}</small></td><td></td><td class="ck">☐ verdächtig<br>☐ Alibi</td></tr>`).join('');
@@ -2632,11 +2634,12 @@ h1{font-size:17pt;margin:0}h2{font-size:13pt;margin:0 0 6px;padding-bottom:3px;b
 .room{border:1.2pt solid #333;border-radius:6px;padding:8px 10px;margin:0 0 10px;break-inside:avoid}
 .room.page{break-before:page}.room.page:first-of-type{break-before:auto}
 .grid{border:1px solid #9aa6b2;background-color:#fff;background-image:linear-gradient(#d5dde6 1px,transparent 1px),linear-gradient(90deg,#d5dde6 1px,transparent 1px);background-size:5mm 5mm;margin:4px 0}
-.g-s{height:26mm}.g-m{height:30mm}.g-l{height:40mm}
+.g-s{height:26mm}.g-m{height:30mm}.g-l{height:40mm}.room:not(.page) .g-l{height:42mm}
 .pz{display:grid;grid-template-columns:1fr 1fr;gap:6px 10px;margin-bottom:6px}.pbox{break-inside:avoid}.task{font-size:8.5pt;color:#333;margin:2px 0}.tick{font-size:9pt;color:#444;text-align:right}
 .hint{font-size:9.5pt;color:#444}
 table.cards{width:100%;border-collapse:collapse;margin:6px 0}.cards th,.cards td{border:1px solid #888;padding:3px 6px;text-align:left;font-size:10pt;height:7.5mm;vertical-align:middle}.cards th{background:#f1f1f1;font-size:9pt;height:auto}.cards td:first-child{width:12%;font-weight:700}.ck{width:14%;font-size:9pt}
-.door{margin-top:4px}.code{font:700 13pt ui-monospace,Consolas,monospace;text-align:right;margin-top:4px}
+.door{margin-top:4px}
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:start}.duo table.cards{margin:4px 0}.duo .cards td{height:6.5mm;padding:2px 6px}.duo .door{margin-top:4px}.duo .door>div:first-child{font-size:9.5pt}.duo .g-s{height:30mm}.duo .code{font-size:12pt}.code{font:700 13pt ui-monospace,Consolas,monospace;text-align:right;margin-top:4px}
 .item{display:inline-block;margin-right:18px}
 ol.lines{padding-left:22px;margin:4px 0}ol.lines li{border-bottom:1px solid #999;height:8mm}
 button{font:600 15px system-ui;padding:8px 16px;margin:8px 0}
