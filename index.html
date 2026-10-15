@@ -359,7 +359,7 @@ table.res{width:100%;border-collapse:collapse;margin:18px 0}
   </div>
   <div class="how">
     <div><b>Rätsel öffnen.</b> Tippe auf einen leuchtenden Gegenstand im Raum.</div>
-    <div><b>Codekarten sammeln.</b> Jedes gelöste Rätsel gibt eine Karte mit einer Geraden. Alle laufen durch den Türcode (x | y). Mit drei Karten kannst du das Zahlenschloss bedienen.</div>
+    <div><b>Codekarten sammeln.</b> Jedes gelöste Rätsel gibt eine Karte mit einer Geraden. Alle laufen durch den Türcode (x | y). <span id="needtxt">Mit drei Karten kannst du das Zahlenschloss bedienen.</span></div>
     <div><b>Rechnen auf Papier.</b> Hol dir ein Heft. Tipps kosten Punkte, aber keine Nerven.</div>
   </div>
   <div class="startrow">
@@ -475,6 +475,18 @@ const insT=s=>lin([s.m,'x'],[s.b,'']);
 const subT=s=>`${lin([s.a,'x'])} + ${s.c===1?'':s.c}(${insT(s)}) = ${fz(s.e)}`;
 function genAddY(R){for(;;){const x=R.nz(-3,6),y=R.nz(-3,8),a1=R.int(1,5),a2=R.int(1,5),k=R.int(1,4);if(a1===a2)continue;const c1=a1*x+k*y,c2=a2*x-k*y;if(!c2||Math.abs(c1)>45||Math.abs(c2)>45)continue;return{x,y,a1,a2,k,c1,c2}}}
 function genAddX(R){for(;;){const x=R.nz(-3,6),y=R.nz(-3,8),a=R.int(1,5),b1=R.int(1,6),b2=R.int(1,6);const c1=a*x+b1*y,c2=-a*x+b2*y;if(!c1||!c2||Math.abs(c1)>50||Math.abs(c2)>70)continue;return{x,y,a,b1,b2,c1,c2}}}
+/* Beide Gleichungen müssen multipliziert werden: kein y-Koeffizient und kein x-Koeffizient teilt den anderen,
+   und keine Gleichung lässt sich vorher kürzen */
+function genLcm(R){
+  const gcd=(u,v)=>v?gcd(v,u%v):u;
+  for(;;){
+    const [k1,k2]=R.shuf(R.pick([[2,3],[3,4],[2,5],[3,5],[4,5],[4,6],[6,8],[6,9]])),a1=R.int(2,5),a2=R.int(2,5);
+    if(a1%a2===0||a2%a1===0||gcd(a1,k1)>1||gcd(a2,k2)>1)continue;
+    const x=R.nz(-4,5),y=R.nz(-4,5),c1=a1*x+k1*y,c2=a2*x-k2*y;
+    if(!c1||!c2||Math.abs(c1)>30||Math.abs(c2)>30)continue;
+    return{x,y,a1,a2,k1,k2,c1,c2,L:k1*k2/gcd(k1,k2)};
+  }
+}
 function genMul(R){for(;;){const x=R.nz(-2,5),y=R.nz(-2,6),a1=R.int(1,5),a2=R.int(1,4),k=R.int(2,5);if(a1-k*a2===0)continue;const c1=a1*x+k*y,c2=a2*x+y;if(Math.abs(c1)>50)continue;return{x,y,a1,a2,k,c1,c2}}}
 function genCross(R,m1s,m2s,avoid){for(;;){const x=R.int(0,4),y=R.int(0,6),m1=R.pick(m1s),m2=R.pick(m2s),b1=y-m1*x,b2=y-m2*x;if(b1<-6||b1>8||b2<-4||b2>12)continue;if(avoid&&avoid(m1,b1,m2,b2))continue;return{x,y,m1,b1,m2,b2}}}
 function genProbe(R,yform){
@@ -627,9 +639,16 @@ const LEVELS=[
   G('4.1','Schreibtisch','schreibtisch','Auf dem Bildschirm steht ein System.',R=>{let x,y;do{x=R.nz(-2,9);y=R.nz(-3,8)}while(x===y);
     return{q:`Löse mit dem Additionsverfahren. ${sys(std(1,1,x+y),std(1,-1,x-y))}`,parts:[I(XY(x,y))],
       hints:['Addiere beide Gleichungen. Was passiert mit y?',`2x = ${fz(2*x)}. Dann x in I einsetzen.`]}}),
-  G('4.2','Tresor','tresor','Der Tresor will ein Zahlenpaar.',R=>{const s=genAddY(R);
-    return{q:`Löse mit dem Additionsverfahren. ${sys(std(s.a1,s.k,s.c1),std(s.a2,-s.k,s.c2))}`,parts:[I(XY(s.x,s.y))],
-      hints:['Addiere beide Gleichungen. Die y-Terme fallen weg.',`${lin([s.a1+s.a2,'x'])} = ${fz(s.c1+s.c2)}. Setze x danach in eine Gleichung ein.`]}}),
+  G('4.2','Tresor','tresor','Der Tresor will ein Zahlenpaar. Diesmal musst du beide Gleichungen umbauen.',R=>{const s=genLcm(R),m1=s.L/s.k1,m2=s.L/s.k2;
+    return{q:`Löse mit dem Additionsverfahren. ${sys(std(s.a1,s.k1,s.c1),std(s.a2,-s.k2,s.c2))}`,
+      parts:[I([{l:'kgV =',a:s.L,n:'das kgV'}],{q:`Damit y wegfällt: Was ist das kleinste gemeinsame Vielfache von ${s.k1} und ${s.k2}?`,
+          more:([v])=>v>0&&Number.isInteger(v)?(v%s.k1===0&&v%s.k2===0?`${v} ist ein gemeinsames Vielfaches, aber nicht das kleinste. Geh die Vielfachen von ${Math.max(s.k1,s.k2)} der Reihe nach durch.`
+            :v%s.k1!==0&&v%s.k2!==0?`${v} ist weder ein Vielfaches von ${s.k1} noch von ${s.k2}.`:`${v} ist kein Vielfaches von ${v%s.k1?s.k1:s.k2}.`):null}),
+        I([{l:'I mal',a:m1,n:'die Zahl für I'},{l:'II mal',a:m2,n:'die Zahl für II'}],{q:'Mit welchen Zahlen multiplizierst du I und II, damit beim Addieren y wegfällt?',
+          trap:{vals:[s.k2,s.k1],msg:`So entsteht ${s.k1*s.k2}y. Das klappt auch, aber die Zahlen werden unnötig groß. Rechne mit dem kleinsten gemeinsamen Vielfachen.`}}),
+        I(XY(s.x,s.y))],
+      hints:[`In I steht +${s.k1}y, in II −${s.k2}y. Keine der beiden Zahlen passt in die andere. Suche das kleinste gemeinsame Vielfache von ${s.k1} und ${s.k2}.`,
+        `kgV = ${s.L}. I mal ${m1} und II mal ${m2}: ${lin([s.a1*m1,'x'],[s.L,'y'])} = ${fz(s.c1*m1)} und ${lin([s.a2*m2,'x'],[-s.L,'y'])} = ${fz(s.c2*m2)}. Jetzt addieren.`]}}),
   G('4.3','Aktenschrank','aktenschrank','Der Aktenschrank hat ein Zahlenschloss.',R=>{const s=genMul(R);
     return{q:`Löse mit dem Additionsverfahren. ${sys(std(s.a1,s.k,s.c1),std(s.a2,1,s.c2))}`,parts:[I(XY(s.x,s.y))],
       hints:[`Damit y wegfällt, muss in einer Gleichung +${s.k}y und in der anderen −${s.k}y stehen.`,`Multipliziere II mit −${s.k}. Danach addierst du I und II.`]}}),
@@ -914,6 +933,7 @@ function mkInput(pt){
     if(got.some(Number.isNaN))return{ok:false,incomplete:true,msg:'Das versteht ARGUS nicht. Gib eine Zahl ein, zum Beispiel −3, 2,5 oder 3/4.'};
     if(rows.some((r,k)=>r.f.frac&&!good[k]&&same(got[k],A[k])))return{ok:false,msg:'Der Wert stimmt, aber ARGUS will einen Bruch. Schreib ihn zum Beispiel als 5/8.'};
     if(pt.trap&&pt.trap.vals.every((v,k)=>same(got[k],v)))return{ok:false,msg:pt.trap.msg};
+    if(pt.more){const m=pt.more(got);if(m)return{ok:false,msg:m}}
     if(rows.length===2&&!same(A[0],A[1])&&same(got[0],A[1])&&same(got[1],A[0]))
       return{ok:false,msg:xy?'x und y vertauscht? Im Paar (x | y) steht x immer vorne.':'Die beiden Werte sind vertauscht. Lies nochmal genau, wonach gefragt ist.'};
     const sk=rows.findIndex((r,k)=>!good[k]&&A[k]!==0&&same(got[k],-A[k]));
@@ -1602,7 +1622,8 @@ const st=id=>S.stats[id]||(S.stats[id]={wrong:0,hints:0,solved:false,first:false
 const solvedCount=()=>lvl().puzzles.filter(p=>S.stats[p.id]&&S.stats[p.id].solved).length;
 /* G-Kurs: In Räumen mit mindestens fünf Rätseln reicht eine Codekarte weniger. */
 /* Drei Codekarten öffnen jede Tür. Weitere Rätsel geben mehr Auswahl, Sterne und den Bonusraum. */
-const needFor=L=>L.bonus?0:Math.min(3,L.puzzles.length-1);
+/* Codekarten pro Tür: Einstellung der Lehrkraft (2, 3, 4 oder 99 = alle), höchstens so viele, wie der Raum Rätsel hat */
+const needFor=L=>L.bonus?0:Math.min(gcfg().cards||3,L.puzzles.length);
 const needCount=()=>needFor(lvl());
 const teamName=i=>S.names[i];
 const mmss=t=>String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0');
@@ -2116,8 +2137,8 @@ function finish(){
 /* Neuer Schlüssel: Alle früher gespeicherten Lehrkraft-Einstellungen gelten nicht mehr, die PIN ist wieder 1234.
    Klassen-Links (#k=…) funktionieren weiter. */
 const CFGKEY='technova-cfg-2';
-const CFG0={kurs:'E',rooms:LEVELS.map(()=>true),limit:0,same:false,code:'',pin:'1234',sound:'on'};
-const LIMITS=[0,20,30,45,60,90];
+const CFG0={kurs:'E',rooms:LEVELS.map(()=>true),limit:0,same:false,code:'',pin:'1234',sound:'on',cards:3};
+const LIMITS=[0,20,30,45,60,90],CARDS=[2,3,4,99];
 function cleanCfg(c){
   const o={...CFG0,...(c&&typeof c==='object'?c:{})};
   o.kurs=o.kurs==='G'?'G':'E';
@@ -2128,6 +2149,7 @@ function cleanCfg(c){
   o.same=!!o.same&&!!o.code;
   o.pin=/^\d{4,8}$/.test(String(o.pin))?String(o.pin):'1234';
   o.sound=o.sound==='off'?'off':'on';
+  o.cards=CARDS.includes(Number(o.cards))?Number(o.cards):3;
   return o;
 }
 const enc=o=>btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
@@ -2147,10 +2169,12 @@ function cfgSummary(c){
     mains===all?'alle Räume':`${mains} von ${all} Räumen`,
     c.kurs==='G'||!c.rooms[bi]?'ohne Bonusraum':null,
     c.limit?`${c.limit} Minuten Zeitlimit`:null,
+    c.cards!==3?(c.cards>=99?'alle Codekarten nötig':`${c.cards} Codekarten pro Tür`):null,
     c.same?`Klassencode ${c.code}`:null,
     c.sound==='off'?'ohne Ton':null].filter(Boolean).join(' · ');
 }
 function cfgNote(){
+  const k=CFG.cards||3;$('#needtxt').textContent=k>=99?'Erst mit allen Karten eines Raums kannst du das Zahlenschloss bedienen.':`Mit ${['','','zwei','drei','vier'][k]} Karten kannst du das Zahlenschloss bedienen.`;
   const d=JSON.stringify({...CFG,pin:''})!==JSON.stringify({...cleanCfg(null),pin:''});
   const n=$('#cfgnote');n.hidden=!d;n.textContent=d?'Einstellungen der Lehrkraft: '+cfgSummary(CFG):'';
 }
@@ -2262,6 +2286,11 @@ function teacherSetup(){
     choice('radio','kurs',c.kurs==='G',v=>{if(v)c.kurs='G'},'G-Kurs','Erster Tipp pro Rätsel kostenlos. Türdisplay zeichnet in allen Räumen. Kein Bonusraum.'));
   let no=0;
   const rooms=h('div',{class:'tgrid'},LEVELS.map((L,i)=>choice('checkbox','',c.rooms[i],v=>{c.rooms[i]=v},(L.bonus?'Bonus: ':`${++no}. `)+L.room,L.topic)));
+  const cardsSel=h('div',{class:'tgrid'},
+    choice('radio','cards',c.cards===2,v=>{if(v)c.cards=2},'2 Karten','Schneller durch. Gut für schwächere Gruppen oder wenig Zeit.'),
+    choice('radio','cards',c.cards===3,v=>{if(v)c.cards=3},'3 Karten (Standard)','Ein bequemes Kartenpaar gibt es nur mit Glück.'),
+    choice('radio','cards',c.cards===4,v=>{if(v)c.cards=4},'4 Karten','Mehr Übung pro Raum.'),
+    choice('radio','cards',c.cards===99,v=>{if(v)c.cards=99},'Alle Karten','Jedes Rätsel muss gelöst werden. Der Türcode steht dann am Türdisplay.'));
   const sel=h('select',{class:'tsel','aria-label':'Zeitlimit'},LIMITS.map(v=>h('option',{value:v},v?`${v} Minuten`:'Kein Zeitlimit')));
   sel.value=String(c.limit);sel.addEventListener('change',()=>{c.limit=Number(sel.value);upd()});
   const code=h('input',{class:'tin',maxlength:'12','aria-label':'Klassencode'});code.value=c.code;
@@ -2326,6 +2355,7 @@ function teacherSetup(){
         h('button',{class:'btn small',type:'button',onclick:()=>startPreview('fin')},'Finale'))),
     sec('Kurs',kurs),
     sec('Räume',rooms),
+    sec('Codekarten pro Tür',h('p',{class:'tipline'},'So viele Rätsel muss eine Gruppe lösen, bevor sie das Zahlenschloss bedienen kann. Gilt für alle Räume.'),cardsSel),
     sec('Zeitlimit',h('p',{class:'tipline'},'Läuft als Notstrom-Countdown. Ist er leer, endet das Spiel mit der Auswertung.'),sel),
     sec('Aufgaben',nums,codeRow),
     sec('Ton',snd),
